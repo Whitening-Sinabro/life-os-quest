@@ -4,7 +4,10 @@
     "module": "esnext",
     "lib": ["ES2023", "DOM"],
     "types": ["vite/client"],
-    "skipLibCheck": true,
+    "skipLibCheck": true,    
+    "allowJs": true,
+    "checkJs": false,
+    "jsx": "react-jsx",
 
     /* Bundler mode */
     "moduleResolution": "bundler",
