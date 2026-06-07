@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+:root {
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  color: #0f172a;
+  background: #f7f8fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.life-dashboard {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(0, 229, 255, 0.09), transparent 30rem),
+    radial-gradient(circle at 82% 8%, rgba(123, 92, 255, 0.08), transparent 34rem),
+    #070b14;
+  color: #dbeafe;
+}
+
+.life-dashboard .bg-white,
+.life-dashboard .bg-slate-50 {
+  background-color: #101827 !important;
+}
+
+.life-dashboard .bg-slate-100 {
+  background-color: #172338 !important;
+}
+
+.life-dashboard .bg-slate-200 {
+  background-color: #22314d !important;
+}
+
+.life-dashboard .bg-slate-900,
+.life-dashboard .bg-slate-950 {
+  background-color: #00d7c0 !important;
+  color: #06101d !important;
+}
+
+.life-dashboard .bg-emerald-50 {
+  background-color: rgba(0, 215, 192, 0.12) !important;
+}
+
+.life-dashboard .bg-sky-50 {
+  background-color: rgba(56, 189, 248, 0.12) !important;
+}
+
+.life-dashboard .bg-rose-50 {
+  background-color: rgba(244, 63, 148, 0.12) !important;
+}
+
+.life-dashboard .bg-violet-50 {
+  background-color: rgba(124, 92, 255, 0.14) !important;
+}
+
+.life-dashboard .bg-amber-50 {
+  background-color: rgba(255, 139, 24, 0.13) !important;
+}
+
+.life-dashboard .bg-indigo-50 {
+  background-color: rgba(83, 184, 255, 0.12) !important;
+}
+
+.life-dashboard .border,
+.life-dashboard .border-slate-100,
+.life-dashboard .border-slate-200,
+.life-dashboard .border-rose-100,
+.life-dashboard .border-sky-100,
+.life-dashboard .border-emerald-100,
+.life-dashboard .border-violet-100,
+.life-dashboard .border-amber-100 {
+  border-color: #243552 !important;
+}
+
+.life-dashboard .border-emerald-200,
+.life-dashboard .border-emerald-300,
+.life-dashboard .border-emerald-400,
+.life-dashboard .border-emerald-500 {
+  border-color: #00d7c0 !important;
+}
+
+.life-dashboard .text-slate-950,
+.life-dashboard .text-slate-900,
+.life-dashboard .text-slate-800,
+.life-dashboard .text-slate-700 {
+  color: #f8fbff !important;
+}
+
+.life-dashboard .text-slate-600,
+.life-dashboard .text-slate-500,
+.life-dashboard .text-slate-400 {
+  color: #8ea7cb !important;
+}
+
+.life-dashboard .text-emerald-600,
+.life-dashboard .text-emerald-700,
+.life-dashboard .text-emerald-800 {
+  color: #00d7c0 !important;
+}
+
+.life-dashboard .text-sky-700 {
+  color: #48c8ff !important;
+}
+
+.life-dashboard .text-rose-700 {
+  color: #ff4fb3 !important;
+}
+
+.life-dashboard .text-violet-700 {
+  color: #8d70ff !important;
+}
+
+.life-dashboard .text-amber-700 {
+  color: #ff8b18 !important;
+}
+
+.life-dashboard .text-indigo-700 {
+  color: #53b8ff !important;
+}
+
+.life-dashboard .shadow-sm,
+.life-dashboard .shadow-md {
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.24) !important;
+}
+
+.life-dashboard section > .rounded-lg,
+.life-dashboard aside.rounded-lg,
+.life-dashboard header.rounded-lg,
+.life-dashboard nav.rounded-lg,
+.life-dashboard div.rounded-lg:has(> .text-sm),
+.life-dashboard button.rounded-lg {
+  border-radius: 8px !important;
+}
+
+.life-dashboard header,
+.life-dashboard nav,
+.life-dashboard section > .rounded-lg,
+.life-dashboard aside.rounded-lg {
+  position: relative;
+  overflow: hidden;
+}
+
+.life-dashboard header::before,
+.life-dashboard nav::before,
+.life-dashboard section > .rounded-lg::before,
+.life-dashboard aside.rounded-lg::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, #00d7c0, #38bdf8);
+  pointer-events: none;
+}
+
+.life-dashboard section > .rounded-lg:nth-of-type(3n + 1)::before {
+  background: linear-gradient(90deg, #38bdf8, #7c5cff);
+}
+
+.life-dashboard section > .rounded-lg:nth-of-type(3n + 2)::before {
+  background: linear-gradient(90deg, #00d7c0, #38bdf8);
+}
+
+.life-dashboard section > .rounded-lg:nth-of-type(3n)::before {
+  background: linear-gradient(90deg, #ff4fb3, #ff8b18);
+}
+
+.life-dashboard button {
+  color: inherit;
+}
+
+.life-dashboard button:hover {
+  border-color: #38bdf8 !important;
+}
+
+.life-dashboard .ring-emerald-100,
+.life-dashboard .ring-2 {
+  --tw-ring-color: rgba(0, 215, 192, 0.28) !important;
+}
+
+.life-dashboard textarea {
+  background: #08111f !important;
+  border-color: #243552 !important;
+  color: #f8fbff !important;
+}
+
+.life-dashboard textarea::placeholder {
+  color: #597196 !important;
+}
+
+.life-dashboard textarea:focus {
+  border-color: #00d7c0 !important;
+  box-shadow: 0 0 0 4px rgba(0, 215, 192, 0.16) !important;
+}
+
+.life-dashboard .rounded-full {
+  box-shadow: none;
+}
+
+.life-dashboard .bg-emerald-500 {
+  background: linear-gradient(90deg, #00d7c0, #38bdf8) !important;
+}
