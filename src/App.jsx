@@ -1494,7 +1494,7 @@ export default function App() {
 
   return (
     <main className="life-dashboard min-h-screen bg-[#f7f8fb] text-slate-900">
-      <section className="mx-auto flex w-full max-w-[96rem] flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 2xl:max-w-[104rem]">
+      <section className="mx-auto flex w-full min-w-0 max-w-[96rem] flex-col gap-6 overflow-x-hidden px-4 py-5 sm:px-6 lg:px-8 2xl:max-w-[104rem]">
         <header className="grid gap-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-[1.15fr_0.75fr_0.95fr] md:items-center">
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
@@ -1632,10 +1632,10 @@ export default function App() {
               />
             )}
 
-        <section className="grid gap-4">
-          <section className="space-y-4">
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,0.56fr)_minmax(0,1fr)]">
-              <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="grid min-w-0 gap-4">
+          <section className="min-w-0 space-y-4">
+            <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,0.56fr)_minmax(0,1fr)]">
+              <div className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <div className="flex items-center gap-2">
@@ -2000,7 +2000,7 @@ function WeekPlannerCalendar({
   }
 
   return (
-    <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
+    <div className="mt-5 min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-4">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-black text-emerald-600">{c.weekPlanner ?? copy.en.weekPlanner}</p>
@@ -2009,8 +2009,8 @@ function WeekPlannerCalendar({
         <p className="text-xs font-bold leading-5 text-slate-500">{c.dragHint ?? copy.en.dragHint}</p>
       </div>
 
-      <div className="-mx-1 mt-4 overflow-x-auto px-1">
-        <div className="grid min-w-[46rem] grid-cols-7 gap-1.5 md:gap-2 lg:gap-3 xl:min-w-0">
+      <div className="mt-4">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 lg:gap-3">
           {days.map((day) => {
             const dayMissionIds = schedule[day.id] ?? []
             const selected = selectedDayId === day.id
