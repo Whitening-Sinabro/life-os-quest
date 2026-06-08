@@ -28,10 +28,9 @@ const USER_STORAGE_PREFIX = 'life-game-user-state-v1'
 const CURRENT_USER_KEY = 'life-game-current-user-v1'
 const PROGRAM_START_DATE = new Date(2026, 5, 1)
 const users = [
-  { id: 'ck',    name: 'CK' },
-  { id: 'ella',  name: 'Ella' },
-  { id: 'mark',  name: 'Mark' },
-  { id: 'sally', name: 'Sally' },
+  { id: 'test1', name: 'Test 1' },
+  { id: 'test2', name: 'Test 2' },
+  { id: 'test3', name: 'Test 3' },
 ]
 
 const userBadgeStyles = {
