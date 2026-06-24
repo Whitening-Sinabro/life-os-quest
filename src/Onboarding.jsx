@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowRight, Sparkles, Check } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Sparkles, Check } from 'lucide-react'
 
 const GOAL_OPTIONS = [
   { id: 'health', label: '건강한 습관 만들기', desc: '운동·수면·식습관을 꾸준히' },
@@ -211,14 +211,24 @@ export default function Onboarding({ initialProfile, onProfileChange, onComplete
   }
   const patch = (changes) => commit({ ...profile, ...changes })
   const next = () => commit({ ...profile, _step: Math.min(TOTAL_STEPS - 1, step + 1) })
+  const back = () => commit({ ...profile, _step: Math.max(0, step - 1) })
   const finish = () => onComplete({ ...profile, _step: TOTAL_STEPS - 1 })
 
   return (
     <main className="min-h-screen bg-[#f7f8fb] text-slate-900">
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 pb-6 pt-5">
         {step > 0 && (
-          <div className="mb-6">
+          <div className="mb-6 grid grid-cols-[2.5rem_1fr_2.5rem] items-center">
+            <button
+              type="button"
+              onClick={back}
+              aria-label="뒤로"
+              className="grid h-10 w-10 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            >
+              <ArrowLeft size={20} />
+            </button>
             <ProgressDots step={step} />
+            <span />
           </div>
         )}
         {step === 0 && <Welcome onNext={next} />}
