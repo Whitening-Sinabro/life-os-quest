@@ -1499,6 +1499,7 @@ export default function App() {
     return (
       <Onboarding
         initialProfile={state.profile}
+        onProfileChange={(profile) => updateState({ profile })}
         onComplete={(profile) => updateState({ profile, onboarded: true })}
       />
     )

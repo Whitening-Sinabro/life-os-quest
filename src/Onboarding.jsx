@@ -200,13 +200,18 @@ function SelectFieldsStep({ title, subtitle, fields, values, onChange, onNext, l
   )
 }
 
-export default function Onboarding({ initialProfile, onComplete }) {
-  const [step, setStep] = useState(0)
-  const [profile, setProfile] = useState(() => ({ goals: [], ...initialProfile }))
+export default function Onboarding({ initialProfile, onProfileChange, onComplete }) {
+  const [profile, setProfile] = useState(() => ({ goals: [], _step: 0, ...initialProfile }))
+  const step = Math.min(TOTAL_STEPS - 1, profile._step ?? 0)
 
-  const patch = (changes) => setProfile((prev) => ({ ...prev, ...changes }))
-  const next = () => setStep((s) => Math.min(TOTAL_STEPS - 1, s + 1))
-  const finish = () => onComplete({ ...profile })
+  // Persist every change (incl. current step) so progress survives reload / resumes per account.
+  const commit = (nextProfile) => {
+    setProfile(nextProfile)
+    onProfileChange?.(nextProfile)
+  }
+  const patch = (changes) => commit({ ...profile, ...changes })
+  const next = () => commit({ ...profile, _step: Math.min(TOTAL_STEPS - 1, step + 1) })
+  const finish = () => onComplete({ ...profile, _step: TOTAL_STEPS - 1 })
 
   return (
     <main className="min-h-screen bg-[#f7f8fb] text-slate-900">
