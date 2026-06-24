@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { fetchUserState, upsertUserState } from './supabase.js'
+import Onboarding from './Onboarding.jsx'
 import { motion } from 'framer-motion'
 import {
   BookOpen,
@@ -643,6 +644,8 @@ const createDefaultState = () => {
     completed: {},
     memos: {},
     schedules: {},
+    onboarded: false,
+    profile: null,
   }
 }
 
@@ -1489,6 +1492,15 @@ export default function App() {
           <p className="text-sm font-black">Loading...</p>
         </div>
       </main>
+    )
+  }
+
+  if (!state.onboarded) {
+    return (
+      <Onboarding
+        initialProfile={state.profile}
+        onComplete={(profile) => updateState({ profile, onboarded: true })}
+      />
     )
   }
 
