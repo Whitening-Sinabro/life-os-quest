@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ArrowRight, ArrowLeft, Sparkles, Check } from 'lucide-react'
 
-const GOAL_OPTIONS = [
+export const GOAL_OPTIONS = [
   { id: 'health', label: '건강한 습관 만들기', desc: '운동·수면·식습관을 꾸준히' },
   { id: 'selfdev', label: '자기계발', desc: '새로운 지식과 기술 익히기' },
   { id: 'career', label: '커리어 성장', desc: '일과 전문성을 한 단계 위로' },

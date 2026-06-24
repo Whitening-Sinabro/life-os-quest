@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { fetchUserState, upsertUserState, getSession, onAuthChange, signOut } from './supabase.js'
-import Onboarding from './Onboarding.jsx'
+import Onboarding, { GOAL_OPTIONS } from './Onboarding.jsx'
 import Auth from './Auth.jsx'
+
+const GOAL_LABEL_MAP = Object.fromEntries(GOAL_OPTIONS.map((o) => [o.id, o.label]))
 import { motion } from 'framer-motion'
 import {
   BookOpen,
@@ -1626,6 +1628,39 @@ export default function App() {
             </div>
           </div>
         </header>
+
+        {state.profile && (state.profile.goals?.length || state.profile.duration || state.profile.dream) && (
+          <section className="rounded-lg border border-indigo-100 bg-gradient-to-br from-indigo-50 to-white p-5 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-lg font-black text-slate-950">
+                {(currentUser.name?.split('@')[0] || '회원')}님의 성장 여정
+              </p>
+              {state.profile.duration && (
+                <span className="rounded-full bg-indigo-500 px-3 py-1 text-xs font-black text-white">
+                  {state.profile.duration} 플랜
+                </span>
+              )}
+            </div>
+            {state.profile.dream && (
+              <p className="mt-2 text-sm font-semibold italic leading-6 text-slate-600">“{state.profile.dream}”</p>
+            )}
+            {state.profile.goals?.length > 0 && (
+              <div className="mt-4">
+                <p className="mb-2 text-[11px] font-black uppercase tracking-widest text-slate-400">내 목표</p>
+                <div className="flex flex-wrap gap-2">
+                  {state.profile.goals.map((id) => (
+                    <span
+                      key={id}
+                      className="rounded-full border border-indigo-200 bg-white px-3 py-1 text-sm font-bold text-indigo-700"
+                    >
+                      {GOAL_LABEL_MAP[id] ?? id}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
 
         <nav className="grid grid-cols-4 gap-2 rounded-lg border border-slate-200 bg-white p-2 shadow-sm sm:flex sm:w-fit">
           <TabButton
