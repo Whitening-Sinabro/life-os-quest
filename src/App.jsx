@@ -1630,13 +1630,13 @@ export default function App() {
         </header>
 
         {state.profile && (state.profile.goals?.length || state.profile.duration || state.profile.dream) && (
-          <section className="rounded-lg border border-indigo-100 bg-gradient-to-br from-indigo-50 to-white p-5 shadow-sm">
+          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-lg font-black text-slate-950">
                 {(currentUser.name?.split('@')[0] || '회원')}님의 성장 여정
               </p>
               {state.profile.duration && (
-                <span className="rounded-full bg-indigo-500 px-3 py-1 text-xs font-black text-white">
+                <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black text-white">
                   {state.profile.duration} 플랜
                 </span>
               )}
@@ -1651,7 +1651,7 @@ export default function App() {
                   {state.profile.goals.map((id) => (
                     <span
                       key={id}
-                      className="rounded-full border border-indigo-200 bg-white px-3 py-1 text-sm font-bold text-indigo-700"
+                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-700"
                     >
                       {GOAL_LABEL_MAP[id] ?? id}
                     </span>
