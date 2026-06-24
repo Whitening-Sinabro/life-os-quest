@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { fetchUserState, upsertUserState } from './supabase.js'
+import { fetchUserState, upsertUserState, getSession, onAuthChange, signOut } from './supabase.js'
 import Onboarding from './Onboarding.jsx'
+import Auth from './Auth.jsx'
 import { motion } from 'framer-motion'
 import {
   BookOpen,
@@ -1124,7 +1125,9 @@ function loadGoogleIdentityScript() {
 }
 
 export default function App() {
-  const [currentUserId, setCurrentUserId] = useState(loadCurrentUserId)
+  const [session, setSession] = useState(null)
+  const [authReady, setAuthReady] = useState(false)
+  const currentUserId = session?.user?.id ?? null
   const [state, setState] = useState(createDefaultState)
   const [isLoading, setIsLoading] = useState(true)
   const [allUsersData, setAllUsersData] = useState(null)
@@ -1137,7 +1140,24 @@ export default function App() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
   const lang = state.lang ?? 'en'
   const c = copy[lang]
-  const currentUser = users.find((user) => user.id === currentUserId) ?? users[0]
+  const currentUser = { id: currentUserId, name: session?.user?.email ?? '' }
+
+  useEffect(() => {
+    let active = true
+    getSession().then((s) => {
+      if (!active) return
+      setSession(s)
+      setAuthReady(true)
+    })
+    const unsub = onAuthChange((s) => {
+      setSession(s)
+      setAuthReady(true)
+    })
+    return () => {
+      active = false
+      unsub()
+    }
+  }, [])
 
   const syncCalendar = useCallback(async (token, usersData, currentLang) => {
     if (!token || !usersData) return
@@ -1208,6 +1228,7 @@ export default function App() {
   }, [gToken, allUsersData])
 
   useEffect(() => {
+    if (!currentUserId) return
     setIsLoading(true)
     fetchUserState(currentUserId)
       .then((remoteState) => {
@@ -1228,7 +1249,7 @@ export default function App() {
   }, [currentUserId])
 
   useEffect(() => {
-    if (isLoading) return
+    if (isLoading || !currentUserId) return
     clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
       upsertUserState(currentUserId, state).catch(console.error)
@@ -1240,8 +1261,10 @@ export default function App() {
   }, [lang])
 
   useEffect(() => {
+    if (!currentUserId) return
+    const me = [{ id: currentUserId, name: currentUser.name }]
     Promise.all(
-      users.map((user) =>
+      me.map((user) =>
         fetchUserState(user.id)
           .then((s) => ({ user, state: s ? migrateState({ ...createDefaultState(), ...s }) : createDefaultState() }))
           .catch(() => ({ user, state: createDefaultState() }))
@@ -1249,9 +1272,10 @@ export default function App() {
     ).then(setAllUsersData)
   }, [currentUserId, state.schedules])
 
-  const switchUser = (userId) => {
-    saveCurrentUserId(userId)
-    setCurrentUserId(userId)
+  const handleSignOut = () => {
+    signOut()
+    setState(createDefaultState())
+    setAllUsersData(null)
   }
 
   const totalXp = useMemo(
@@ -1484,6 +1508,21 @@ export default function App() {
     })
   }
 
+  if (!authReady) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f7f8fb]">
+        <div className="flex flex-col items-center gap-4 text-slate-500">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-500" />
+          <p className="text-sm font-black">Loading...</p>
+        </div>
+      </main>
+    )
+  }
+
+  if (!session) {
+    return <Auth />
+  }
+
   if (isLoading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f7f8fb]">
@@ -1542,19 +1581,16 @@ export default function App() {
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-wide text-slate-500">{c.activeMember ?? copy.en.activeMember}</p>
-                <div className="mt-2 flex min-w-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3">
+                <div className="mt-2 flex min-w-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2">
                   <UserRound size={15} className="shrink-0 text-emerald-600" />
-                  <select
-                    value={currentUserId}
-                    onChange={(event) => switchUser(event.target.value)}
-                    className="h-9 min-w-28 bg-transparent text-sm font-black text-slate-950 outline-none"
+                  <span className="min-w-0 truncate text-sm font-black text-slate-950">{currentUser.name}</span>
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="ml-auto shrink-0 rounded-md px-2 py-1 text-xs font-black text-slate-400 hover:bg-slate-100 hover:text-slate-700"
                   >
-                    {users.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name}
-                      </option>
-                    ))}
-                  </select>
+                    로그아웃
+                  </button>
                 </div>
               </div>
               <div className="grid grid-cols-2 rounded-lg border border-slate-200 bg-white p-1">
