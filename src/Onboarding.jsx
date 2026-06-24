@@ -22,7 +22,9 @@ const PATTERN_FIELDS = [
   { id: 'focusTime', label: '집중 시간대', options: ['아침', '오후', '저녁', '밤'] },
 ]
 
-const TOTAL_STEPS = 5 // welcome + 4 input steps (up to life pattern)
+const DURATION_OPTIONS = ['1주', '2주', '3주', '4주', '2개월', '3개월', '4개월', '5개월', '6개월']
+
+const TOTAL_STEPS = 6 // welcome + goals, dream, state, pattern, duration
 
 function ProgressDots({ step }) {
   return (
@@ -200,8 +202,64 @@ function SelectFieldsStep({ title, subtitle, fields, values, onChange, onNext, l
   )
 }
 
+function DurationStep({ value, onChange, onNext }) {
+  return (
+    <StepLayout
+      title="얼마 동안의 플랜을 짜드릴까요?"
+      subtitle="기간에 맞춰 성장 계획을 설계해요."
+      onNext={onNext}
+      nextDisabled={!value}
+      lastStep
+      nextLabel="플랜 만들기"
+    >
+      <SelectField label="플랜 기간" options={DURATION_OPTIONS} value={value} onChange={onChange} />
+    </StepLayout>
+  )
+}
+
+const GOAL_LABELS = Object.fromEntries(GOAL_OPTIONS.map((o) => [o.id, o.label]))
+
+function SummaryPopup({ profile, onConfirm }) {
+  const goals = (profile.goals ?? []).map((id) => GOAL_LABELS[id] ?? id)
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-5">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+        <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl bg-indigo-500 text-white">
+          <Sparkles size={24} />
+        </div>
+        <h2 className="text-center text-lg font-black leading-7 text-slate-950">
+          당신을 위한
+          <br />
+          <span className="text-indigo-600">{profile.duration ?? ''}</span>간의 플랜이 완성됐어요!
+        </h2>
+        <div className="mt-5 rounded-xl bg-slate-50 p-4">
+          <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-400">내 목표</p>
+          {goals.length ? (
+            <ul className="grid gap-1.5">
+              {goals.map((g) => (
+                <li key={g} className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <Check size={15} className="shrink-0 text-indigo-500" strokeWidth={3} />
+                  {g}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">목표를 선택하지 않았어요.</p>
+          )}
+        </div>
+        <div className="mt-6">
+          <PrimaryButton onClick={onConfirm}>
+            시작하기 <ArrowRight size={16} />
+          </PrimaryButton>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Onboarding({ initialProfile, onProfileChange, onComplete }) {
   const [profile, setProfile] = useState(() => ({ goals: [], _step: 0, ...initialProfile }))
+  const [showSummary, setShowSummary] = useState(false)
   const step = Math.min(TOTAL_STEPS - 1, profile._step ?? 0)
 
   // Persist every change (incl. current step) so progress survives reload / resumes per account.
@@ -251,12 +309,18 @@ export default function Onboarding({ initialProfile, onProfileChange, onComplete
             fields={PATTERN_FIELDS}
             values={profile.pattern}
             onChange={(pattern) => patch({ pattern })}
-            onNext={finish}
-            lastStep
-            nextLabel="완료하고 시작하기"
+            onNext={next}
+          />
+        )}
+        {step === 5 && (
+          <DurationStep
+            value={profile.duration}
+            onChange={(duration) => patch({ duration })}
+            onNext={() => setShowSummary(true)}
           />
         )}
       </div>
+      {showSummary && <SummaryPopup profile={profile} onConfirm={finish} />}
     </main>
   )
 }
