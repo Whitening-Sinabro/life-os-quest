@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mapProfileToRequest, isPersonalizable } from '../src/aiPlan.js'
+import { mapProfileToRequest, isPersonalizable, slotKey, buildAiOverlay, aiSlotFor } from '../src/aiPlan.js'
 
 const FULL = {
   goals: ['selfdev'], dream: 'become fluent in English',
@@ -42,8 +42,6 @@ test('isPersonalizable is true only for a complete profile', () => {
   assert.equal(isPersonalizable({ ...FULL, duration: '   ' }), false)
   assert.equal(isPersonalizable(null), false)
 })
-
-import { slotKey, buildAiOverlay, aiSlotFor } from '../src/aiPlan.js'
 
 // The app's default v1 week-1 roster (from weeklyMissionPlans.v1.lifeDesign via getDefaultWeekSchedule).
 const DEFAULT_V1 = {
@@ -112,6 +110,7 @@ test('buildAiOverlay returns null for a default (non-model) plan', () => {
   const result = modelResult([quest('r1', 'reading', 'x')], { mon: ['r1'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] })
   result.planMeta.source = 'default'
   assert.equal(buildAiOverlay(result, 'v1', 1, DEFAULT_V1), null)
+  assert.equal(buildAiOverlay(null, 'v1', 1, DEFAULT_V1), null)
 })
 
 test('aiSlotFor returns the slot only for the target version+week', () => {
@@ -121,4 +120,15 @@ test('aiSlotFor returns the slot only for the target version+week', () => {
   assert.equal(aiSlotFor(overlay, 'v1', 2, 'mon', 'reading'), null)
   assert.equal(aiSlotFor(overlay, 'v2', 1, 'mon', 'reading'), null)
   assert.equal(aiSlotFor(null, 'v1', 1, 'mon', 'reading'), null)
+})
+
+test('buildAiOverlay silently skips weekSchedule ids absent from quests[]', () => {
+  const result = modelResult(
+    [quest('r1', 'reading', 'Read ch.1')],
+    { mon: ['r1', 'ghost_id'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
+  )
+  const overlay = buildAiOverlay(result, 'v1', 1, DEFAULT_V1)
+  assert.equal(overlay.slots[slotKey('mon', 'reading')].objectiveEn, 'Read ch.1')
+  assert.equal(overlay.dropped.reading, 0) // ghost does not inflate the counter
+  assert.equal(Object.keys(overlay.slots).length, 1)
 })
