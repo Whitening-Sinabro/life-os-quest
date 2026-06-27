@@ -1410,6 +1410,7 @@ export default function App() {
     let timer
     const deadline = Date.now() + 180000 // worker model timeout is 120s + poll slack
     const version = state.selectedVersion
+    const week = state.selectedWeek // overlay the week the user is actually on (not hardcoded 1)
     const poll = async () => {
       try {
         const row = await fetchAiPlan(currentUserId)
@@ -1429,13 +1430,20 @@ export default function App() {
           return
         }
         // status === 'done'
-        const overlay = buildAiOverlay(row.result, version, 1, getDefaultWeekSchedule(version, 1))
+        const overlay = buildAiOverlay(row.result, version, week, getDefaultWeekSchedule(version, week))
         if (overlay) {
           if (overlay.dropped.reading || overlay.dropped.workout) {
             // No silent cap; value-free payload, repo logging convention (console).
             console.warn('[aiPlan] dropped quests beyond slot capacity', overlay.dropped)
           }
-          updateState({ aiPlan: overlay })
+          // Place the AI's reading/workout missions onto the week (sanitizeWeekSchedule keeps
+          // in-roster ids within their required counts) AND overlay the personalized text, so the
+          // otherwise-empty week renders cards. setState callback form = race-safe vs autosave.
+          setState((cur) => ({
+            ...cur,
+            schedules: { ...cur.schedules, [getScheduleKey(version, week)]: overlay.schedule },
+            aiPlan: overlay,
+          }))
         }
         setAiStatus('done')
       } catch {

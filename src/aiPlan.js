@@ -78,11 +78,13 @@ export function buildAiOverlay(result, version, week, defaultWeekSchedule) {
   const workoutSlots = slotsFor(defaultWeekSchedule, 'workout')
 
   const slots = {}
+  const schedule = {} // day -> [missionId]: places the mission so the empty week renders a card
   const fill = (bucket, slotDays, missionId) => {
     const n = Math.min(bucket.length, slotDays.length)
     for (let i = 0; i < n; i++) {
       const q = bucket[i]
-      slots[slotKey(slotDays[i], missionId)] = {
+      const day = slotDays[i]
+      slots[slotKey(day, missionId)] = {
         objectiveKo: q.objective?.ko ?? '',
         objectiveEn: q.objective?.en ?? '',
         title: q.title ?? null,
@@ -90,6 +92,7 @@ export function buildAiOverlay(result, version, week, defaultWeekSchedule) {
         unitLabel: q.unitLabel ?? null,
         resourceRef: q.resourceRef ?? null,
       }
+      schedule[day] = [...(schedule[day] ?? []), missionId]
     }
     return Math.max(0, bucket.length - slotDays.length) // dropped count (no silent cap)
   }
@@ -104,6 +107,7 @@ export function buildAiOverlay(result, version, week, defaultWeekSchedule) {
     goalSummary: result.planMeta?.goalSummary ?? null,
     summaryLines: Array.isArray(result.planMeta?.summaryLines) ? result.planMeta.summaryLines : [],
     slots,
+    schedule,
     dropped: { reading: droppedReading, workout: droppedWorkout },
   }
 }

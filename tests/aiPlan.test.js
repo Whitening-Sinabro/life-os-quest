@@ -96,6 +96,16 @@ test('buildAiOverlay distributes reading quests across reading slot-days in orde
   assert.deepEqual(overlay.goalSummary, { ko: '성장', en: 'growth' })
 })
 
+test('buildAiOverlay places filled missions into a schedule (so the day renders a card)', () => {
+  const result = modelResult(
+    [quest('r1', 'reading', 'a'), quest('w1', 'workout', 'b')],
+    { mon: ['r1', 'w1'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
+  )
+  const overlay = buildAiOverlay(result, 'v1', 1, DEFAULT_V1)
+  // reading -> first reading slot-day (mon); workout -> first workout slot-day (mon)
+  assert.deepEqual(overlay.schedule.mon, ['reading', 'workout'])
+})
+
 test('buildAiOverlay counts overflow when more quests than slots (no silent cap)', () => {
   const quests = []
   const mon = []
