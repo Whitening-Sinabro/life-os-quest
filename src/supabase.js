@@ -66,3 +66,31 @@ export async function upsertUserState(userId, state) {
 
   if (error) throw error
 }
+
+export async function requestAiPlan(userId, request) {
+  if (!supabase) throw new Error('Supabase not configured')
+  const { error } = await supabase.from('ai_plans').upsert(
+    {
+      user_id: userId,
+      request,
+      status: 'pending',
+      result: null,
+      error: null,
+      requested_at: new Date().toISOString(),
+      completed_at: null,
+    },
+    { onConflict: 'user_id' },
+  )
+  if (error) throw error
+}
+
+export async function fetchAiPlan(userId) {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from('ai_plans')
+    .select('status, result, error')
+    .eq('user_id', userId)
+    .single()
+  if (error && error.code !== 'PGRST116') throw error // PGRST116 = no row yet
+  return data ?? null
+}
