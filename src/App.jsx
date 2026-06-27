@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { fetchUserState, upsertUserState, getSession, onAuthChange, signOut } from './supabase.js'
+import { fetchUserState, upsertUserState, getSession, onAuthChange, signOut, requestAiPlan, fetchAiPlan } from './supabase.js'
 import Onboarding, { GOAL_OPTIONS } from './Onboarding.jsx'
+import { mapProfileToRequest, isPersonalizable, buildAiOverlay, aiSlotFor } from './aiPlan.js'
 import Auth from './Auth.jsx'
 
 const GOAL_LABEL_MAP = Object.fromEntries(GOAL_OPTIONS.map((o) => [o.id, o.label]))
@@ -649,6 +650,7 @@ const createDefaultState = () => {
     schedules: {},
     onboarded: false,
     profile: null,
+    aiPlan: null,
   }
 }
 
@@ -1131,6 +1133,8 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false)
   const currentUserId = session?.user?.id ?? null
   const [state, setState] = useState(createDefaultState)
+  const [aiStatus, setAiStatus] = useState('idle') // 'idle' | 'pending' | 'error' | 'done'
+  const [aiError, setAiError] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [allUsersData, setAllUsersData] = useState(null)
   const [progressUserId, setProgressUserId] = useState(null)
@@ -1377,6 +1381,78 @@ export default function App() {
 
   const updateState = (patch) => setState((current) => ({ ...current, ...patch }))
 
+  // --- B-2: AI personalization (Supabase ai_plans queue, poll-based) ---
+  const enqueueAiPlan = useCallback(
+    (profile) => {
+      if (!supabase || !currentUserId || !isPersonalizable(profile)) return
+      setAiError(null)
+      requestAiPlan(currentUserId, mapProfileToRequest(profile))
+        .then(() => setAiStatus('pending')) // set pending only after the row is written (race-free)
+        .catch(() => {
+          setAiStatus('error')
+          setAiError('enqueue_failed')
+        })
+    },
+    [currentUserId],
+  )
+
+  const handleOnboardingComplete = useCallback(
+    (profile) => {
+      updateState({ profile, onboarded: true }) // non-blocking: enter the dashboard immediately
+      enqueueAiPlan(profile)
+    },
+    [updateState, enqueueAiPlan],
+  )
+
+  useEffect(() => {
+    if (aiStatus !== 'pending' || !currentUserId) return
+    let cancelled = false
+    let timer
+    const deadline = Date.now() + 180000 // worker model timeout is 120s + poll slack
+    const version = state.selectedVersion
+    const poll = async () => {
+      try {
+        const row = await fetchAiPlan(currentUserId)
+        if (cancelled) return
+        if (!row || row.status === 'pending') {
+          if (Date.now() > deadline) {
+            setAiStatus('error')
+            setAiError('timeout')
+            return
+          }
+          timer = setTimeout(poll, 2500)
+          return
+        }
+        if (row.status === 'error') {
+          setAiStatus('error')
+          setAiError(row.error ?? 'worker_error')
+          return
+        }
+        // status === 'done'
+        const overlay = buildAiOverlay(row.result, version, 1, getDefaultWeekSchedule(version, 1))
+        if (overlay) {
+          if (overlay.dropped.reading || overlay.dropped.workout) {
+            // No silent cap; value-free payload, repo logging convention (console).
+            console.warn('[aiPlan] dropped quests beyond slot capacity', overlay.dropped)
+          }
+          updateState({ aiPlan: overlay })
+        }
+        setAiStatus('done')
+      } catch {
+        if (!cancelled) {
+          setAiStatus('error')
+          setAiError('fetch_failed')
+        }
+      }
+    }
+    poll()
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiStatus, currentUserId])
+
   const toggleMission = (missionId) => {
     if (selectedDay.rest) return
     const key = getMissionKey(state.selectedVersion, state.selectedWeek, selectedDay.id, missionId)
@@ -1541,7 +1617,7 @@ export default function App() {
       <Onboarding
         initialProfile={state.profile}
         onProfileChange={(profile) => updateState({ profile })}
-        onComplete={(profile) => updateState({ profile, onboarded: true })}
+        onComplete={(profile) => handleOnboardingComplete(profile)}
       />
     )
   }
@@ -1822,6 +1898,36 @@ export default function App() {
                   onDropMission={moveMissionToDay}
                 />
 
+                {aiStatus !== 'idle' && (
+                  <div
+                    className={`mt-5 rounded-lg border p-4 text-sm ${
+                      aiStatus === 'pending'
+                        ? 'border-slate-200 bg-slate-50 text-slate-600'
+                        : aiStatus === 'error'
+                          ? 'border-rose-200 bg-rose-50 text-rose-700'
+                          : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                    }`}
+                  >
+                    {aiStatus === 'pending' && 'AI가 너의 목표에 맞춰 플랜을 다듬는 중… 기본 플랜으로 먼저 시작했어요.'}
+                    {aiStatus === 'error' && (
+                      <span className="inline-flex flex-wrap items-center gap-3">
+                        개인화에 실패했어요. 기본 플랜으로 진행합니다.
+                        <button
+                          type="button"
+                          onClick={() => enqueueAiPlan(state.profile)}
+                          className="rounded-full border border-rose-300 px-3 py-1 font-black"
+                        >
+                          재시도
+                        </button>
+                      </span>
+                    )}
+                    {aiStatus === 'done' &&
+                      (state.aiPlan?.goalSummary
+                        ? `개인화 완료: ${tr(state.aiPlan.goalSummary, lang)}`
+                        : '지금은 기본 플랜으로 진행해요.')}
+                  </div>
+                )}
+
                 {selectedDay.rest ? (
                   <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-6 text-center">
                     <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-slate-900 text-white">
@@ -1839,6 +1945,7 @@ export default function App() {
                         state.completed[getMissionKey(state.selectedVersion, state.selectedWeek, selectedDay.id, mission.id)],
                       )
                       const Icon = mission.icon
+                      const overlay = aiSlotFor(state.aiPlan, state.selectedVersion, state.selectedWeek, selectedDay.id, mission.id)
                       return (
                         <motion.button
                           key={`${selectedDay.id}-${mission.id}`}
@@ -1859,7 +1966,15 @@ export default function App() {
                           </div>
                           <p className="mt-4 text-lg font-black text-slate-950">{tr(mission.ko, lang)}</p>
                           <p className="mt-1 text-sm font-semibold text-slate-500">{mission.name}</p>
-                          <p className="mt-3 min-h-10 text-sm leading-5 text-slate-500">{tr(mission.detail, lang)}</p>
+                          <p className="mt-3 min-h-10 text-sm leading-5 text-slate-500">
+                            {overlay ? tr({ ko: overlay.objectiveKo, en: overlay.objectiveEn }, lang) : tr(mission.detail, lang)}
+                          </p>
+                          {overlay?.title && (
+                            <p className="mt-2 text-xs font-semibold text-slate-400">
+                              {overlay.title}
+                              {overlay.unitLabel ? ` · ${overlay.unitLabel}` : ''}
+                            </p>
+                          )}
                           <div className="mt-4 inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm font-black text-slate-700">
                             +{mission.xp} XP
                           </div>
