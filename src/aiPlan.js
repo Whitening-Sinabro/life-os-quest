@@ -35,3 +35,80 @@ export function isPersonalizable(profile) {
       profile.duration.trim().length > 0,
   )
 }
+
+export function slotKey(day, missionId) {
+  return `${day}|${missionId}`
+}
+
+// Ordered (day) list where the default plan places `missionId`, in mon->sun order.
+function slotsFor(defaultWeekSchedule, missionId) {
+  const out = []
+  for (const day of DAYS) {
+    for (const id of defaultWeekSchedule[day] ?? []) {
+      if (id === missionId) out.push(day)
+    }
+  }
+  return out
+}
+
+// AI quests in weekSchedule day-order (mon->sun, first occurrence wins).
+function orderedQuests(result) {
+  const byId = Object.fromEntries((result.quests ?? []).map((q) => [q.id, q]))
+  const seen = new Set()
+  const ordered = []
+  for (const day of DAYS) {
+    for (const id of result.weekSchedule?.[day] ?? []) {
+      if (seen.has(id)) continue
+      seen.add(id)
+      const q = byId[id]
+      if (q) ordered.push(q)
+    }
+  }
+  return ordered
+}
+
+// Returns null unless this is a real model plan; a 'default' plan adds no personalization
+// (its objectives are generic), so the app keeps its own default text.
+export function buildAiOverlay(result, version, week, defaultWeekSchedule) {
+  if (!result || result.planMeta?.source !== 'model') return null
+  const quests = orderedQuests(result)
+  const readingQ = quests.filter((q) => q.id !== SYSTEM_QUEST_ID && READING_CATEGORIES.includes(q.category))
+  const workoutQ = quests.filter((q) => q.category === 'workout')
+  const readingSlots = slotsFor(defaultWeekSchedule, 'reading')
+  const workoutSlots = slotsFor(defaultWeekSchedule, 'workout')
+
+  const slots = {}
+  const fill = (bucket, slotDays, missionId) => {
+    const n = Math.min(bucket.length, slotDays.length)
+    for (let i = 0; i < n; i++) {
+      const q = bucket[i]
+      slots[slotKey(slotDays[i], missionId)] = {
+        objectiveKo: q.objective?.ko ?? '',
+        objectiveEn: q.objective?.en ?? '',
+        title: q.title ?? null,
+        subtitle: q.subtitle ?? null,
+        unitLabel: q.unitLabel ?? null,
+        resourceRef: q.resourceRef ?? null,
+      }
+    }
+    return Math.max(0, bucket.length - slotDays.length) // dropped count (no silent cap)
+  }
+
+  const droppedReading = fill(readingQ, readingSlots, 'reading')
+  const droppedWorkout = fill(workoutQ, workoutSlots, 'workout')
+
+  return {
+    version,
+    week,
+    source: 'model',
+    goalSummary: result.planMeta?.goalSummary ?? null,
+    summaryLines: Array.isArray(result.planMeta?.summaryLines) ? result.planMeta.summaryLines : [],
+    slots,
+    dropped: { reading: droppedReading, workout: droppedWorkout },
+  }
+}
+
+export function aiSlotFor(aiPlan, version, week, day, missionId) {
+  if (!aiPlan || aiPlan.version !== version || aiPlan.week !== week) return null
+  return aiPlan.slots?.[slotKey(day, missionId)] ?? null
+}
