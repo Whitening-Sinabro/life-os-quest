@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { fetchUserState, upsertUserState, getSession, onAuthChange, signOut, requestAiPlan, fetchAiPlan } from './supabase.js'
+import { supabase, fetchUserState, upsertUserState, getSession, onAuthChange, signOut, requestAiPlan, fetchAiPlan } from './supabase.js'
 import Onboarding, { GOAL_OPTIONS } from './Onboarding.jsx'
 import { mapProfileToRequest, isPersonalizable, buildAiOverlay, aiSlotFor } from './aiPlan.js'
 import Auth from './Auth.jsx'
