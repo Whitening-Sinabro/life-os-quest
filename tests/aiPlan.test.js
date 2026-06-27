@@ -25,6 +25,10 @@ test('mapProfileToRequest coerces missing/mistyped fields to schema-valid emptie
   assert.deepEqual(out.profile.currentState, {})
   assert.deepEqual(out.profile.pattern, {})
   assert.equal(out.profile.duration, '')
+
+  const nullOut = mapProfileToRequest(null)
+  assert.deepEqual(nullOut.profile.goals, [])
+  assert.equal(nullOut.profile.goalText, '')
 })
 
 test('isPersonalizable is true only for a complete profile', () => {
@@ -33,6 +37,8 @@ test('isPersonalizable is true only for a complete profile', () => {
   assert.equal(isPersonalizable({ ...FULL, dream: '   ' }), false)
   assert.equal(isPersonalizable({ ...FULL, goals: [] }), false)
   assert.equal(isPersonalizable({ ...FULL, currentState: undefined }), false)
+  assert.equal(isPersonalizable({ ...FULL, pattern: undefined }), false)
   assert.equal(isPersonalizable({ ...FULL, duration: '' }), false)
+  assert.equal(isPersonalizable({ ...FULL, duration: '   ' }), false)
   assert.equal(isPersonalizable(null), false)
 })

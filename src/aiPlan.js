@@ -32,6 +32,6 @@ export function isPersonalizable(profile) {
       profile.pattern &&
       typeof profile.pattern === 'object' &&
       typeof profile.duration === 'string' &&
-      profile.duration.length > 0,
+      profile.duration.trim().length > 0,
   )
 }
