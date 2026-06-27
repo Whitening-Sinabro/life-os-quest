@@ -19,9 +19,9 @@ After applying all seven hunks: `npm run build` must pass, then commit `src/App.
 import { fetchUserState, upsertUserState, getSession, onAuthChange, signOut } from './supabase.js'
 import Onboarding, { GOAL_OPTIONS } from './Onboarding.jsx'
 ```
-**REPLACE WITH:**
+**REPLACE WITH** (note `supabase` is added to the import — the `enqueueAiPlan` guard uses the raw client):
 ```js
-import { fetchUserState, upsertUserState, getSession, onAuthChange, signOut, requestAiPlan, fetchAiPlan } from './supabase.js'
+import { supabase, fetchUserState, upsertUserState, getSession, onAuthChange, signOut, requestAiPlan, fetchAiPlan } from './supabase.js'
 import Onboarding, { GOAL_OPTIONS } from './Onboarding.jsx'
 import { mapProfileToRequest, isPersonalizable, buildAiOverlay, aiSlotFor } from './aiPlan.js'
 ```
