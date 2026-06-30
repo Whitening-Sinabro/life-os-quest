@@ -1,0 +1,79 @@
+#!/usr/bin/env sh
+# Design enforcement pre-commit — AUTHORED (NOT husky's `npm test` scaffold; this project has no test script) [adv f6].
+# Layers: stylelint (CSS) + eslint (JSX className) + exception-cap + baseline-budget + contract fields.
+
+set -e
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+staged() { git diff --cached --name-only --diff-filter=ACMR; }
+
+BASELINE=".claude/status/design-baseline.md"
+CONTRACT=".claude/status/design-contract.md"
+
+# 1. Stylelint (Layer 1) — only if staged CSS. Config handles ignores (styles.css) + token-file exempt.
+if staged | grep -qE '\.(css|scss)$'; then
+  if ! npx --no-install stylelint "src/**/*.css" --allow-empty-input; then
+    echo "[pre-commit] stylelint failed — gradient / glow / raw-color in hand-CSS."
+    echo "  Fix, use var(--color-*), or add /* design-exception: <reason> */ above the line."
+    exit 1
+  fi
+fi
+
+# 2. ESLint (Layer 2) — only if staged JS/JSX. --max-warnings 0 gives the warn-level
+#    no-restricted-classes rule teeth at the commit gate (legacy files are ignored) [adv f4].
+if staged | grep -qE '\.(jsx|js|tsx|ts)$'; then
+  if ! npx --no-install eslint src --max-warnings 0; then
+    echo "[pre-commit] eslint failed — arbitrary color/gradient value in className."
+    echo "  Use design-tokens.css token utilities / var(--color-*), or justify."
+    exit 1
+  fi
+fi
+
+# 3. Exception-cap (2), EXCLUDING grandfathered baseline files from the count [adv f5].
+total=$(git grep --cached -hE 'design-exception:' -- '*.tsx' '*.jsx' '*.vue' '*.svelte' '*.css' '*.scss' '*.astro' '*.mdx' 2>/dev/null | wc -l)
+base=0
+if [ -f "$BASELINE" ]; then
+  for f in $(awk '/^- /{print $2}' "$BASELINE" | grep -vE '[*?]'); do
+    n=$(git grep --cached -hE 'design-exception:' -- "$f" 2>/dev/null | wc -l)
+    base=$((base + n))
+  done
+fi
+count=$((total - base))
+if [ "$count" -gt 2 ]; then
+  echo "[pre-commit] design-exception count (non-grandfathered): $count (cap: 2)."
+  echo "  Remove, or record approval in .claude/status/design-exceptions.md and discuss the cap."
+  exit 1
+fi
+
+# 4. Baseline-budget — grandfather list cannot grow unbounded (else it defeats the exception cap) [adv f5].
+BUDGET=5
+if [ -f "$BASELINE" ]; then
+  nbase=$(awk '/^- /{print $2}' "$BASELINE" | grep -vE '[*?]' | wc -l)
+  if [ "$nbase" -gt "$BUDGET" ]; then
+    echo "[pre-commit] design-baseline.md entries: $nbase (budget: $BUDGET)."
+    echo "  New grandfather entries need justification like exceptions — do not grow silently."
+    exit 1
+  fi
+fi
+
+# 5. Contract required fields filled (each header on its own line, value on the next).
+if [ -f "$CONTRACT" ]; then
+  for field in "Primary Action" "Reference URL" "Accent Color" "Font Family"; do
+    value=$(awk -v f="## $field:" '
+      $0 ~ f {found=1; next}
+      found && /^##/ {exit}
+      found && NF>0 {print; exit}
+    ' "$CONTRACT")
+    if [ -z "$value" ] || echo "$value" | grep -qE '^<.*>$'; then
+      echo "[pre-commit] design-contract.md missing required field: $field"
+      exit 1
+    fi
+  done
+else
+  echo "[pre-commit] .claude/status/design-contract.md not found"
+  exit 1
+fi
+
+exit 0
