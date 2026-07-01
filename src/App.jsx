@@ -3,9 +3,14 @@ import { supabase, fetchUserState, upsertUserState, getSession, onAuthChange, si
 import Onboarding, { GOAL_OPTIONS } from './Onboarding.jsx'
 import { mapProfileToRequest, isPersonalizable, buildAiOverlay, aiSlotFor } from './aiPlan.js'
 import Auth from './Auth.jsx'
+import { createPortal } from 'react-dom'
+import AiGenerationOverlay from './ai/AiGenerationOverlay.jsx'
+import AiRevealSheet from './ai/AiRevealSheet.jsx'
+import AiStatusChip from './ai/AiStatusChip.jsx'
+import { useAiFlow } from './ai/useAiFlow.js'
 
 const GOAL_LABEL_MAP = Object.fromEntries(GOAL_OPTIONS.map((o) => [o.id, o.label]))
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   BookOpen,
   Bot,
@@ -1135,6 +1140,7 @@ export default function App() {
   const [state, setState] = useState(createDefaultState)
   const [aiStatus, setAiStatus] = useState('idle') // 'idle' | 'pending' | 'error' | 'done'
   const [aiError, setAiError] = useState(null)
+  const [enqueueSeq, setEnqueueSeq] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [allUsersData, setAllUsersData] = useState(null)
   const [progressUserId, setProgressUserId] = useState(null)
@@ -1387,7 +1393,7 @@ export default function App() {
       if (!supabase || !currentUserId || !isPersonalizable(profile)) return
       setAiError(null)
       requestAiPlan(currentUserId, mapProfileToRequest(profile))
-        .then(() => setAiStatus('pending')) // set pending only after the row is written (race-free)
+        .then(() => { setEnqueueSeq((n) => n + 1); setAiStatus('pending') }) // set pending only after the row is written (race-free)
         .catch(() => {
           setAiStatus('error')
           setAiError('enqueue_failed')
@@ -1460,6 +1466,34 @@ export default function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aiStatus, currentUserId])
+
+  // SP3: apply a fetched done row silently (rehydrate path) — mirrors the poll's merge.
+  const applyAiRow = useCallback((row) => {
+    const version = state.selectedVersion
+    const week = state.selectedWeek
+    const overlay = buildAiOverlay(row.result, version, week, getDefaultWeekSchedule(version, week))
+    if (!overlay) { setAiStatus('done'); return }
+    setState((cur) => ({
+      ...cur,
+      schedules: { ...cur.schedules, [getScheduleKey(version, week)]: overlay.schedule },
+      aiPlan: overlay,
+    }))
+    setAiStatus('done')
+  }, [state.selectedVersion, state.selectedWeek])
+
+  const resumeAiPoll = useCallback(() => setAiStatus('pending'), [])
+  const retryAi = useCallback(() => enqueueAiPlan(state.profile), [enqueueAiPlan, state.profile])
+
+  const aiFlow = useAiFlow({
+    aiStatus,
+    aiPlan: state.aiPlan,
+    currentUserId,
+    ready: !isLoading, // adv fix A-b: rehydrate only after the persisted state load settled
+    onResume: resumeAiPoll,
+    onApplyRow: applyAiRow,
+    onRetry: retryAi,
+    enqueueSeq,
+  })
 
   const toggleMission = (missionId) => {
     if (selectedDay.rest) return
@@ -1906,36 +1940,6 @@ export default function App() {
                   onDropMission={moveMissionToDay}
                 />
 
-                {aiStatus !== 'idle' && (
-                  <div
-                    className={`mt-5 rounded-lg border p-4 text-sm ${
-                      aiStatus === 'pending'
-                        ? 'border-slate-200 bg-slate-50 text-slate-600'
-                        : aiStatus === 'error'
-                          ? 'border-rose-200 bg-rose-50 text-rose-700'
-                          : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                    }`}
-                  >
-                    {aiStatus === 'pending' && 'AI가 너의 목표에 맞춰 플랜을 다듬는 중… 기본 플랜으로 먼저 시작했어요.'}
-                    {aiStatus === 'error' && (
-                      <span className="inline-flex flex-wrap items-center gap-3">
-                        개인화에 실패했어요. 기본 플랜으로 진행합니다.
-                        <button
-                          type="button"
-                          onClick={() => enqueueAiPlan(state.profile)}
-                          className="rounded-full border border-rose-300 px-3 py-1 font-black"
-                        >
-                          재시도
-                        </button>
-                      </span>
-                    )}
-                    {aiStatus === 'done' &&
-                      (state.aiPlan?.goalSummary
-                        ? `개인화 완료: ${tr(state.aiPlan.goalSummary, lang)}`
-                        : '지금은 기본 플랜으로 진행해요.')}
-                  </div>
-                )}
-
                 {selectedDay.rest ? (
                   <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-6 text-center">
                     <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-slate-900 text-white">
@@ -2086,6 +2090,25 @@ export default function App() {
               })
             }
           />
+        )}
+        {createPortal(
+          <>
+            <AnimatePresence>
+              {aiFlow.surface === 'cover' && <AiGenerationOverlay key="cover" />}
+              {aiFlow.surface === 'sheet' && (
+                <AiRevealSheet
+                  key="sheet"
+                  goalSummary={state.aiPlan?.goalSummary ? tr(state.aiPlan.goalSummary, lang) : ''}
+                  summaryLines={(state.aiPlan?.summaryLines ?? []).map((l) => tr(l, lang))}
+                  onDismiss={aiFlow.onDismiss}
+                />
+              )}
+            </AnimatePresence>
+            {(aiFlow.surface === 'chip-pending' || aiFlow.surface === 'chip-error') && (
+              <AiStatusChip variant={aiFlow.surface} onRetry={aiFlow.onRetry} />
+            )}
+          </>,
+          document.body,
         )}
       </section>
     </main>
