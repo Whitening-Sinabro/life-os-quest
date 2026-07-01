@@ -12,7 +12,7 @@ export default function AiStatusChip({ variant, onRetry }) {
   if (variant === 'chip-pending') {
     body = (
       <div className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm text-muted" role="status" aria-live="polite">
-        <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-surface-3 border-t-accent" />
+        <span aria-hidden="true" className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-surface-3 border-t-accent" />
         AI가 다듬는 중… 기본 플랜으로 먼저 시작했어요
       </div>
     )

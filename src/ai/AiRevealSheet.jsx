@@ -23,6 +23,7 @@ export default function AiRevealSheet({ goalSummary, summaryLines = [], onDismis
         transition={{ type: 'spring', stiffness: 320, damping: 32 }}
         className="relative w-full max-w-md rounded-t-2xl border-t-2 border-accent bg-surface p-5 pb-7"
         role="dialog"
+        aria-modal="true"
         aria-label="맞춤 플랜 완료"
       >
         <p className="text-xs font-black tracking-wide text-accent">맞춤 완료</p>
