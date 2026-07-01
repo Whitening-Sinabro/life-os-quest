@@ -2,6 +2,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { deriveAiSurface } from '../src/aiFlow.js'
+import { deriveRehydrateAction } from '../src/aiFlow.js'
 
 test('idle -> none', () => {
   assert.equal(deriveAiSurface({ aiStatus: 'idle', genPhase: 'cover', revealDismissed: false, hasGoalSummary: false }), 'none')
@@ -26,4 +27,20 @@ test('done + goalSummary + dismissed -> none', () => {
 })
 test('done without goalSummary -> none (default-plan completion, no sheet)', () => {
   assert.equal(deriveAiSurface({ aiStatus: 'done', genPhase: 'background', revealDismissed: false, hasGoalSummary: false }), 'none')
+})
+
+test('rehydrate: null row -> none', () => {
+  assert.equal(deriveRehydrateAction(null), 'none')
+})
+test('rehydrate: done with result -> apply', () => {
+  assert.equal(deriveRehydrateAction({ status: 'done', result: { planMeta: {} } }), 'apply')
+})
+test('rehydrate: done without result -> none', () => {
+  assert.equal(deriveRehydrateAction({ status: 'done', result: null }), 'none')
+})
+test('rehydrate: pending -> resume', () => {
+  assert.equal(deriveRehydrateAction({ status: 'pending', result: null }), 'resume')
+})
+test('rehydrate: error -> none (do not surface a stale error on mount)', () => {
+  assert.equal(deriveRehydrateAction({ status: 'error', result: null }), 'none')
 })
