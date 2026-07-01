@@ -1,8 +1,7 @@
 // tests/aiFlow.test.js
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { deriveAiSurface } from '../src/aiFlow.js'
-import { deriveRehydrateAction } from '../src/aiFlow.js'
+import { deriveAiSurface, deriveRehydrateAction } from '../src/aiFlow.js'
 
 test('idle -> none', () => {
   assert.equal(deriveAiSurface({ aiStatus: 'idle', genPhase: 'cover', revealDismissed: false, hasGoalSummary: false }), 'none')
@@ -18,6 +17,7 @@ test('done while still on cover -> cover (min-show window keeps the calm screen;
 })
 test('error -> chip-error (any phase)', () => {
   assert.equal(deriveAiSurface({ aiStatus: 'error', genPhase: 'cover', revealDismissed: false, hasGoalSummary: false }), 'chip-error')
+  assert.equal(deriveAiSurface({ aiStatus: 'error', genPhase: 'background', revealDismissed: false, hasGoalSummary: false }), 'chip-error')
 })
 test('done + goalSummary + not dismissed -> sheet', () => {
   assert.equal(deriveAiSurface({ aiStatus: 'done', genPhase: 'background', revealDismissed: false, hasGoalSummary: true }), 'sheet')
