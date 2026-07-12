@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "2.0",
+  "planMeta": {
+    "goalSummary": {
+      "ko": "달리기를 시작하고 싶은데, 예전에 무릎이 안 좋았어요.",
+      "en": "I want to start running but had knee issues before."
+    },
+    "durationWeeks": 12,
+    "track": "v1",
+    "weeklyQuestTarget": 6,
+    "summaryLines": [
+      {
+        "ko": "통증·부상 이력이 있다면 시작 전 전문의와 상담하고, 운동 중 통증이 있으면 중단하세요.",
+        "en": "If you have pain or a prior injury, consult a clinician before starting and stop if it hurts."
+      },
+      {
+        "ko": "주간 거리를 천천히 늘려가며 부상을 예방하세요. 달리기 사이에 휴식일을 두세요.",
+        "en": "Gradually increase your weekly distance while preventing injuries. Take rest days between running sessions."
+      },
+      {
+        "ko": "초보자로서 꾸준히 운동하고, 무릎 통증이 생기면 즉시 의사에게 상담하세요.",
+        "en": "As a beginner, be consistent with your training and consult a doctor if knee pain occurs."
+      }
+    ],
+    "source": "model"
+  },
+  "quests": [
+    {
+      "id": "run-c25k-1",
+      "category": "workout",
+      "estimatedMinutes": 30,
+      "title": "카우치 투 5K",
+      "subtitle": "NHS 9주 걷기→달리기 입문",
+      "resourceRef": "run:c25k",
+      "unitIndex": 0,
+      "unitLabel": "1주 — 5분 걷기 후 60초 달리기/90초 걷기 반복 (주 3회)",
+      "objective": {
+        "ko": "5분 빠르게 걷고 60초 달리기·90초 걷기를 반복하세요. 달리는 내내 한 문장을 여유 있게 말할 만큼 천천히 — 숨차면 더 느리게.",
+        "en": "Walk fast for 5 minutes, then run 60 seconds and walk 90 seconds. Run at a pace where you can comfortably speak in full "
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "run-c25k-2",
+      "category": "workout",
+      "estimatedMinutes": 30,
+      "title": "카우치 투 5K",
+      "subtitle": "NHS 9주 걷기→달리기 입문",
+      "resourceRef": "run:c25k",
+      "unitIndex": 0,
+      "unitLabel": "1주 — 5분 걷기 후 60초 달리기/90초 걷기 반복 (주 3회)",
+      "objective": {
+        "ko": "달리기 구간을 늘려보세요. 90초 달리기 후 2분 걷기를 반복하세요.",
+        "en": "Increase your running intervals. Repeat 90 seconds of running followed by 2 minutes of walking."
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "strength-1",
+      "category": "workout",
+      "estimatedMinutes": 30,
+      "title": "러너 기본 근력·프리햅",
+      "subtitle": "종아리·후면사슬 신경근 운동",
+      "resourceRef": "strength:runner-prehab",
+      "unitIndex": 0,
+      "unitLabel": "세션 A — 종아리 레이즈 + 발목 강화",
+      "objective": {
+        "ko": "종아리 레이즈와 발목 강화 운동을 세트로 하세요. 근력 운동은 달리기 부상 예방에 가장 확실한 방법입니다.",
+        "en": "Perform a set of calf raises and ankle strengthening exercises. Strength training is the most reliable way to prevent ru"
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "weekend-review",
+      "category": "reading",
+      "estimatedMinutes": 60,
+      "title": null,
+      "subtitle": null,
+      "resourceRef": null,
+      "unitIndex": null,
+      "unitLabel": null,
+      "objective": {
+        "ko": "이번 주 성과·막힌 점·다음 주 약속 정리",
+        "en": "Review wins, blockers, next-week commitments"
+      },
+      "meta": {
+        "xp": 50,
+        "statRewards": {
+          "leadership": 12
+        }
+      }
+    }
+  ],
+  "weekSchedule": {
+    "mon": [
+      "run-c25k-1"
+    ],
+    "tue": [],
+    "wed": [
+      "strength-1"
+    ],
+    "thu": [],
+    "fri": [
+      "run-c25k-2"
+    ],
+    "sat": [],
+    "sun": [
+      "weekend-review"
+    ]
+  }
+}

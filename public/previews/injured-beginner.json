@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "2.0",
+  "planMeta": {
+    "goalSummary": {
+      "ko": "달리기를 시작하고 싶어요.",
+      "en": "I want to start running."
+    },
+    "durationWeeks": 24,
+    "track": "v1",
+    "weeklyQuestTarget": 6,
+    "summaryLines": [
+      {
+        "ko": "통증·부상 이력이 있다면 시작 전 전문의와 상담하고, 운동 중 통증이 있으면 중단하세요.",
+        "en": "If you have pain or a prior injury, consult a clinician before starting and stop if it hurts."
+      },
+      {
+        "ko": "주간 거리를 천천히 늘려보세요. 통증이 생기면 휴식을 취하세요.",
+        "en": "Gradually increase your weekly distance. Take a break if you feel pain."
+      },
+      {
+        "ko": "초보자로서는 주 3회 달리기를 추천합니다. 꾸준히 해보세요!",
+        "en": "As a beginner, it's recommended to run three times a week. Keep it consistent!"
+      }
+    ],
+    "source": "model"
+  },
+  "quests": [
+    {
+      "id": "run-week1-session0",
+      "category": "workout",
+      "estimatedMinutes": 25,
+      "title": "카우치 투 5K",
+      "subtitle": "NHS 9주 걷기→달리기 입문",
+      "resourceRef": "run:c25k",
+      "unitIndex": 0,
+      "unitLabel": "1주 — 5분 걷기 후 60초 달리기/90초 걷기 반복 (주 3회)",
+      "objective": {
+        "ko": "5분 빠르게 걷고 60초 달리기·90초 걷기를 반복하세요. 달리는 내내 한 문장을 여유 있게 말할 만큼 천천히 — 숨차면 더 느리게.",
+        "en": "Walk fast for 5 minutes, then alternate 60 seconds of running and 90 seconds of walking. Run at an easy pace where you c"
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "strength-week1-session0",
+      "category": "workout",
+      "estimatedMinutes": 25,
+      "title": "러너 기본 근력·프리햅",
+      "subtitle": "종아리·후면사슬 신경근 운동",
+      "resourceRef": "strength:runner-prehab",
+      "unitIndex": 0,
+      "unitLabel": "세션 A — 종아리 레이즈 + 발목 강화",
+      "objective": {
+        "ko": "종아리 레이즈와 발목 강화 운동을 3세트씩 해보세요. 근력 운동은 달리기 부상 예방에 가장 확실한 레버예요.",
+        "en": "Perform three sets of calf raises and ankle strengthening exercises. Strength training is the most reliable lever for pr"
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "strength-week1-session1",
+      "category": "workout",
+      "estimatedMinutes": 25,
+      "title": "러너 기본 근력·프리햅",
+      "subtitle": "종아리·후면사슬 신경근 운동",
+      "resourceRef": "strength:runner-prehab",
+      "unitIndex": 0,
+      "unitLabel": "세션 A — 종아리 레이즈 + 발목 강화",
+      "objective": {
+        "ko": "종아리 레이즈와 발목 강화 운동을 3세트씩 해보세요. 근력 운동은 달리기 부상 예방에 가장 확실한 레버예요.",
+        "en": "Perform three sets of calf raises and ankle strengthening exercises. Strength training is the most reliable lever for pr"
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "weekend-review",
+      "category": "reading",
+      "estimatedMinutes": 60,
+      "title": null,
+      "subtitle": null,
+      "resourceRef": null,
+      "unitIndex": null,
+      "unitLabel": null,
+      "objective": {
+        "ko": "이번 주 성과·막힌 점·다음 주 약속 정리",
+        "en": "Review wins, blockers, next-week commitments"
+      },
+      "meta": {
+        "xp": 50,
+        "statRewards": {
+          "leadership": 12
+        }
+      }
+    }
+  ],
+  "weekSchedule": {
+    "mon": [
+      "run-week1-session0"
+    ],
+    "tue": [],
+    "wed": [
+      "strength-week1-session0"
+    ],
+    "thu": [],
+    "fri": [
+      "strength-week1-session1"
+    ],
+    "sat": [],
+    "sun": [
+      "weekend-review"
+    ]
+  }
+}

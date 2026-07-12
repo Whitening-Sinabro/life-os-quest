@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { isPreview, PREVIEW_SESSION, previewUserState, previewAiRow } from './previewMode.js'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -33,18 +34,24 @@ export async function signOut() {
 }
 
 export async function getSession() {
+  if (isPreview()) return PREVIEW_SESSION
   if (!supabase) return null
   const { data } = await supabase.auth.getSession()
   return data.session
 }
 
 export function onAuthChange(callback) {
+  if (isPreview()) {
+    callback(PREVIEW_SESSION)
+    return () => {}
+  }
   if (!supabase) return () => {}
   const { data } = supabase.auth.onAuthStateChange((_event, session) => callback(session))
   return () => data.subscription.unsubscribe()
 }
 
 export async function fetchUserState(userId) {
+  if (isPreview()) return previewUserState()
   if (!supabase) return null
 
   const { data, error } = await supabase
@@ -58,6 +65,7 @@ export async function fetchUserState(userId) {
 }
 
 export async function upsertUserState(userId, state) {
+  if (isPreview()) return // preview is read-only — never persist fixture state
   if (!supabase) return
 
   const { error } = await supabase
@@ -68,6 +76,7 @@ export async function upsertUserState(userId, state) {
 }
 
 export async function requestAiPlan(userId, request) {
+  if (isPreview()) return // preview shows a fixture; never enqueue a real job
   if (!supabase) throw new Error('Supabase not configured')
   const { error } = await supabase.from('ai_plans').upsert(
     {
@@ -85,6 +94,7 @@ export async function requestAiPlan(userId, request) {
 }
 
 export async function fetchAiPlan(userId) {
+  if (isPreview()) return previewAiRow()
   if (!supabase) return null
   const { data, error } = await supabase
     .from('ai_plans')
