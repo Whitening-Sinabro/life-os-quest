@@ -1,10 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { fetchUserState, upsertUserState, getSession, onAuthChange, signOut } from './supabase.js'
+import { supabase, fetchUserState, upsertUserState, getSession, onAuthChange, signOut, requestAiPlan, fetchAiPlan } from './supabase.js'
 import Onboarding, { GOAL_OPTIONS } from './Onboarding.jsx'
+import { mapProfileToRequest, isPersonalizable, buildAiOverlay, aiSlotFor } from './aiPlan.js'
+import { DEFAULT_LANG, resolveLang } from './lang.js'
+import { copy, tr } from './i18n.js'
 import Auth from './Auth.jsx'
+import { createPortal } from 'react-dom'
+import AiGenerationOverlay from './ai/AiGenerationOverlay.jsx'
+import AiRevealSheet from './ai/AiRevealSheet.jsx'
+import AiStatusChip from './ai/AiStatusChip.jsx'
+import { useAiFlow } from './ai/useAiFlow.js'
 
 const GOAL_LABEL_MAP = Object.fromEntries(GOAL_OPTIONS.map((o) => [o.id, o.label]))
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   BookOpen,
   Bot,
@@ -47,130 +55,6 @@ const versionWeekOffsets = {
   v1: 0,
   v2: 8,
   v3: 16,
-}
-
-const copy = {
-  en: {
-    questBadge: '6-Month Growth Quest',
-    currentLevel: 'Current Reward Level',
-    highestLevel: 'Max level',
-    quest: 'Quest',
-    progress: 'Progress',
-    diary: '일기',
-    roadmap: 'Roadmap',
-    diary: 'Diary',
-    versionSelect: 'Chapter',
-    weeklyRoadmap: 'Weekly Roadmap',
-    weeks: '8 weeks',
-    reset: 'Reset',
-    resetTitle: 'Reset current week',
-    weekComplete: 'Week Complete',
-    selectedDay: 'Selected Day',
-    rest: 'Rest',
-    totalXp: 'Total XP',
-    daySelect: 'Day Select',
-    saturdayRest: 'Saturday is open for flexible planning.',
-    todayRest: 'Full Rest Day',
-    todayMissions: "Today's Missions",
-    saturdayNoMissions: 'No missions on Saturday.',
-    restNote: 'Use it for sleep, friends, walks, hobbies, or recovery. Rest is part of the program.',
-    weekendMemo: 'Weekend Review Memo',
-    weekendMemoHint: 'On Sunday, write what worked, what got stuck, and one promise for next week.',
-    memoPlaceholder: 'Example: I completed workouts 3 times this week. Next week I will lock reading time at 9 PM.',
-    dailyDiary: 'Daily Diary',
-    dailyDiaryHint: 'Write a short note about today: what you did, how you felt, and one thing to remember.',
-    dailyDiaryPlaceholder: 'Example: I read for 30 minutes and felt focused. Tomorrow I will start earlier.',
-    toc: 'Table of Content',
-    tocTitle: 'Build your life first, then build things',
-    hide: 'Hide',
-    show: 'Show',
-    start: 'Life',
-    create: 'World',
-    independent: 'Build',
-    activitySummary: 'Daily Focus',
-    weekAtGlance: 'Week at a glance',
-    fullRest: 'Full rest',
-    progressTitle: 'Growth Progress',
-    totalComplete: 'Total Complete',
-    totalProgress: 'Total Progress',
-    characterStatus: 'Character Status',
-    overallPower: 'Overall',
-    account: 'User',
-    activeMember: 'Current User',
-    weekPlanner: '1-Week Planner',
-    activityPool: 'Activities to Schedule',
-    dragHint: 'Drag activities into any day of the 1-week calendar.',
-    resetPlan: 'Reset Plan',
-    loadPreviousWeek: 'Load Previous Week Plan',
-    planned: 'planned',
-    remaining: 'remaining',
-    dropHere: 'Drop here',
-    monthlyProgress: 'Monthly Progress',
-    curriculumCheck: '6-Month Curriculum Check',
-    diaryBoard: 'Diary Board',
-    weeklyDiary: 'Weekly Diary',
-    monthlyDiary: 'Monthly Diary',
-    noDiaryEntries: 'No diary entry yet.',
-    missions: 'missions',
-    month: 'Month',
-    week: 'Week',
-    untilXp: (xp, percent) => `${percent}% to ${xp} XP`,
-  },
-  ko: {
-    questBadge: '6개월 성장 퀘스트',
-    currentLevel: '현재 보상 레벨',
-    highestLevel: '최고 레벨',
-    quest: 'Quest',
-    progress: 'Progress',
-    roadmap: '로드맵',
-    versionSelect: '챕터 선택',
-    weeklyRoadmap: '주간 로드맵',
-    weeks: '8주',
-    reset: '초기화',
-    resetTitle: '현재 주차 초기화',
-    weekComplete: '이번 주 완료',
-    selectedDay: '선택한 하루',
-    rest: '휴식',
-    totalXp: '총 XP',
-    daySelect: '요일 선택',
-    saturdayRest: '토요일은 XP 미션 없이 100% 휴식으로 비워두었습니다.',
-    todayRest: '오늘은 완전 휴식일',
-    todayMissions: '오늘의 미션',
-    saturdayNoMissions: '토요일은 아무 미션도 없습니다.',
-    restNote: '잠, 친구, 산책, 취미처럼 회복에만 사용하세요. 쉬는 것도 프로그램의 일부입니다.',
-    weekendMemo: '주말 회고 메모',
-    weekendMemoHint: '일요일 회고 때 이번 주에 잘한 점, 막힌 점, 다음 주 약속을 적어보세요.',
-    memoPlaceholder: '예: 이번 주는 운동을 3번 완료했다. 다음 주에는 독서 시간을 저녁 9시로 고정한다.',
-    dailyDiary: '간단한 일기',
-    dailyDiaryHint: '오늘 한 일, 기분, 기억할 점 하나를 짧게 적어보세요.',
-    dailyDiaryPlaceholder: '예: 오늘은 30분 독서를 했다. 내일은 조금 더 일찍 시작해보자.',
-    toc: 'Table of Content',
-    tocTitle: '먼저 생활을 세우고, 그 다음 만들어낸다',
-    hide: '감추기',
-    show: '보이기',
-    start: '인생',
-    create: '세상',
-    independent: '표현',
-    activitySummary: '요일별 주요 활동',
-    weekAtGlance: '이번 주 한눈에 보기',
-    fullRest: '완전 휴식',
-    progressTitle: '성장 진행률',
-    totalComplete: '전체 완료',
-    totalProgress: '전체 진행률',
-    characterStatus: '캐릭터 상태',
-    overallPower: '종합',
-    monthlyProgress: '월별 진행',
-    curriculumCheck: '6개월 커리큘럼 체크',
-    missions: '미션',
-    month: 'Month',
-    week: 'Week',
-    untilXp: (xp, percent) => `${xp} XP까지 ${percent}%`,
-  },
-}
-
-function tr(value, lang) {
-  if (typeof value === 'string') return value
-  return value?.[lang] ?? value?.en ?? ''
 }
 
 const versions = {
@@ -642,13 +526,14 @@ const createDefaultState = () => {
     selectedDay: dayId,
     activeTab: 'quest',
     diaryView: 'week',
-    lang: 'en',
+    lang: DEFAULT_LANG,
     showToc: true,
     completed: {},
     memos: {},
     schedules: {},
     onboarded: false,
     profile: null,
+    aiPlan: null,
   }
 }
 
@@ -1131,6 +1016,9 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false)
   const currentUserId = session?.user?.id ?? null
   const [state, setState] = useState(createDefaultState)
+  const [aiStatus, setAiStatus] = useState('idle') // 'idle' | 'pending' | 'error' | 'done'
+  const [aiError, setAiError] = useState(null)
+  const [enqueueSeq, setEnqueueSeq] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [allUsersData, setAllUsersData] = useState(null)
   const [progressUserId, setProgressUserId] = useState(null)
@@ -1140,7 +1028,7 @@ export default function App() {
   const saveTimerRef = useRef(null)
   const gTokenClientRef = useRef(null)
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-  const lang = state.lang ?? 'en'
+  const lang = resolveLang(state)
   const c = copy[lang]
   const currentUser = { id: currentUserId, name: session?.user?.email ?? '' }
 
@@ -1377,6 +1265,114 @@ export default function App() {
 
   const updateState = (patch) => setState((current) => ({ ...current, ...patch }))
 
+  // --- B-2: AI personalization (Supabase ai_plans queue, poll-based) ---
+  const enqueueAiPlan = useCallback(
+    (profile) => {
+      if (!supabase || !currentUserId || !isPersonalizable(profile)) return
+      setAiError(null)
+      requestAiPlan(currentUserId, mapProfileToRequest(profile))
+        .then(() => { setEnqueueSeq((n) => n + 1); setAiStatus('pending') }) // set pending only after the row is written (race-free)
+        .catch(() => {
+          setAiStatus('error')
+          setAiError('enqueue_failed')
+        })
+    },
+    [currentUserId],
+  )
+
+  const handleOnboardingComplete = useCallback(
+    (profile) => {
+      updateState({ profile, onboarded: true }) // non-blocking: enter the dashboard immediately
+      enqueueAiPlan(profile)
+    },
+    [updateState, enqueueAiPlan],
+  )
+
+  useEffect(() => {
+    if (aiStatus !== 'pending' || !currentUserId) return
+    let cancelled = false
+    let timer
+    const deadline = Date.now() + 180000 // worker model timeout is 120s + poll slack
+    const version = state.selectedVersion
+    const week = state.selectedWeek // overlay the week the user is actually on (not hardcoded 1)
+    const poll = async () => {
+      try {
+        const row = await fetchAiPlan(currentUserId)
+        if (cancelled) return
+        if (!row || row.status === 'pending') {
+          if (Date.now() > deadline) {
+            setAiStatus('error')
+            setAiError('timeout')
+            return
+          }
+          timer = setTimeout(poll, 2500)
+          return
+        }
+        if (row.status === 'error') {
+          setAiStatus('error')
+          setAiError(row.error ?? 'worker_error')
+          return
+        }
+        // status === 'done'
+        const overlay = buildAiOverlay(row.result, version, week, getDefaultWeekSchedule(version, week))
+        if (overlay) {
+          if (overlay.dropped.reading || overlay.dropped.workout) {
+            // No silent cap; value-free payload, repo logging convention (console).
+            console.warn('[aiPlan] dropped quests beyond slot capacity', overlay.dropped)
+          }
+          // Place the AI's reading/workout missions onto the week (sanitizeWeekSchedule keeps
+          // in-roster ids within their required counts) AND overlay the personalized text, so the
+          // otherwise-empty week renders cards. setState callback form = race-safe vs autosave.
+          setState((cur) => ({
+            ...cur,
+            schedules: { ...cur.schedules, [getScheduleKey(version, week)]: overlay.schedule },
+            aiPlan: overlay,
+          }))
+        }
+        setAiStatus('done')
+      } catch {
+        if (!cancelled) {
+          setAiStatus('error')
+          setAiError('fetch_failed')
+        }
+      }
+    }
+    poll()
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiStatus, currentUserId])
+
+  // SP3: apply a fetched done row silently (rehydrate path) — mirrors the poll's merge.
+  const applyAiRow = useCallback((row) => {
+    const version = state.selectedVersion
+    const week = state.selectedWeek
+    const overlay = buildAiOverlay(row.result, version, week, getDefaultWeekSchedule(version, week))
+    if (!overlay) { setAiStatus('done'); return }
+    setState((cur) => ({
+      ...cur,
+      schedules: { ...cur.schedules, [getScheduleKey(version, week)]: overlay.schedule },
+      aiPlan: overlay,
+    }))
+    setAiStatus('done')
+  }, [state.selectedVersion, state.selectedWeek])
+
+  const resumeAiPoll = useCallback(() => setAiStatus('pending'), [])
+  const retryAi = useCallback(() => enqueueAiPlan(state.profile), [enqueueAiPlan, state.profile])
+
+  const aiFlow = useAiFlow({
+    aiStatus,
+    aiPlan: state.aiPlan,
+    currentUserId,
+    ready: !isLoading, // adv fix A-b: rehydrate only after the persisted state load settled
+    onResume: resumeAiPoll,
+    onApplyRow: applyAiRow,
+    onRetry: retryAi,
+    enqueueSeq,
+  })
+
   const toggleMission = (missionId) => {
     if (selectedDay.rest) return
     const key = getMissionKey(state.selectedVersion, state.selectedWeek, selectedDay.id, missionId)
@@ -1541,7 +1537,7 @@ export default function App() {
       <Onboarding
         initialProfile={state.profile}
         onProfileChange={(profile) => updateState({ profile })}
-        onComplete={(profile) => updateState({ profile, onboarded: true })}
+        onComplete={(profile) => handleOnboardingComplete(profile)}
       />
     )
   }
@@ -1839,6 +1835,7 @@ export default function App() {
                         state.completed[getMissionKey(state.selectedVersion, state.selectedWeek, selectedDay.id, mission.id)],
                       )
                       const Icon = mission.icon
+                      const overlay = aiSlotFor(state.aiPlan, state.selectedVersion, state.selectedWeek, selectedDay.id, mission.id)
                       return (
                         <motion.button
                           key={`${selectedDay.id}-${mission.id}`}
@@ -1859,7 +1856,15 @@ export default function App() {
                           </div>
                           <p className="mt-4 text-lg font-black text-slate-950">{tr(mission.ko, lang)}</p>
                           <p className="mt-1 text-sm font-semibold text-slate-500">{mission.name}</p>
-                          <p className="mt-3 min-h-10 text-sm leading-5 text-slate-500">{tr(mission.detail, lang)}</p>
+                          <p className="mt-3 min-h-10 text-sm leading-5 text-slate-500">
+                            {overlay ? tr({ ko: overlay.objectiveKo, en: overlay.objectiveEn }, lang) : tr(mission.detail, lang)}
+                          </p>
+                          {overlay?.title && (
+                            <p className="mt-2 text-xs font-semibold text-slate-400">
+                              {overlay.title}
+                              {overlay.unitLabel ? ` · ${overlay.unitLabel}` : ''}
+                            </p>
+                          )}
                           <div className="mt-4 inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm font-black text-slate-700">
                             +{mission.xp} XP
                           </div>
@@ -1963,6 +1968,25 @@ export default function App() {
               })
             }
           />
+        )}
+        {createPortal(
+          <>
+            <AnimatePresence>
+              {aiFlow.surface === 'cover' && <AiGenerationOverlay key="cover" />}
+              {aiFlow.surface === 'sheet' && (
+                <AiRevealSheet
+                  key="sheet"
+                  goalSummary={state.aiPlan?.goalSummary ? tr(state.aiPlan.goalSummary, lang) : ''}
+                  summaryLines={(state.aiPlan?.summaryLines ?? []).map((l) => tr(l, lang))}
+                  onDismiss={aiFlow.onDismiss}
+                />
+              )}
+            </AnimatePresence>
+            {(aiFlow.surface === 'chip-pending' || aiFlow.surface === 'chip-error') && (
+              <AiStatusChip variant={aiFlow.surface} onRetry={aiFlow.onRetry} />
+            )}
+          </>,
+          document.body,
         )}
       </section>
     </main>

@@ -1,12 +1,29 @@
 import { useState } from 'react'
-import { ArrowRight, ArrowLeft, Sparkles, Check } from 'lucide-react'
+import {
+  ArrowRight, ArrowLeft, Sparkles, Check, Lock,
+  Activity, BookOpen, Footprints, PersonStanding, Waves, Dumbbell, Bike,
+} from 'lucide-react'
 
+// Running beta: only 운동(exercise) is open; the rest are locked ("준비 중").
+// `legacy: true` entries are NOT shown in the picker (filtered in GoalStep) — they exist only so
+// App's GOAL_LABEL_MAP still resolves the pre-beta goal ids on existing profiles (avoids raw-id tags).
 export const GOAL_OPTIONS = [
-  { id: 'health', label: '건강한 습관 만들기', desc: '운동·수면·식습관을 꾸준히' },
-  { id: 'selfdev', label: '자기계발', desc: '새로운 지식과 기술 익히기' },
-  { id: 'career', label: '커리어 성장', desc: '일과 전문성을 한 단계 위로' },
-  { id: 'mindset', label: '마음 챙김', desc: '감정과 에너지를 안정적으로' },
-  { id: 'custom', label: '사용자 정의', desc: '나만의 목표를 직접 정하기' },
+  { id: 'exercise', label: '운동', desc: '러닝으로 시작하는 루틴', icon: Activity },
+  { id: 'reading', label: '독서', desc: '읽기 습관 만들기', icon: BookOpen, locked: true },
+  { id: 'selfdev', label: '자기계발', desc: '새 지식·기술 익히기', icon: Sparkles, locked: true },
+  { id: 'health', label: '건강한 습관 만들기', legacy: true },
+  { id: 'career', label: '커리어 성장', legacy: true },
+  { id: 'mindset', label: '마음 챙김', legacy: true },
+  { id: 'custom', label: '사용자 정의', legacy: true },
+]
+
+// Within 운동, only 런닝 is open in the beta.
+const SPORT_OPTIONS = [
+  { id: 'running', label: '런닝', desc: '초보자 걷기–달리기', icon: Footprints },
+  { id: 'walking', label: '걷기', icon: PersonStanding, locked: true },
+  { id: 'swimming', label: '수영', icon: Waves, locked: true },
+  { id: 'gym', label: '헬스', icon: Dumbbell, locked: true },
+  { id: 'cycling', label: '자전거', icon: Bike, locked: true },
 ]
 
 const STATE_FIELDS = [
@@ -24,7 +41,7 @@ const PATTERN_FIELDS = [
 
 const DURATION_OPTIONS = ['1주', '2주', '3주', '4주', '2개월', '3개월', '4개월', '5개월', '6개월']
 
-const TOTAL_STEPS = 6 // welcome + goals, dream, state, pattern, duration
+const TOTAL_STEPS = 7 // welcome + goal, sport, dream, state, pattern, duration
 
 function ProgressDots({ step }) {
   return (
@@ -79,49 +96,108 @@ function Welcome({ onNext }) {
   )
 }
 
-function GoalStep({ value, onChange, onNext }) {
-  const toggle = (id) => {
-    onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id])
+// One card used by the goal + sport pickers. Locked cards are greyed, show a lock, and are inert.
+function LockableCard({ icon: Icon, label, desc, locked, selected, onClick }) {
+  if (locked) {
+    return (
+      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-left">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-300">
+          <Icon size={20} />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-sm font-black text-slate-400">{label}</span>
+          {desc && <span className="block text-xs text-slate-300">{desc}</span>}
+        </span>
+        <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-xs font-black text-slate-400">
+          <Lock size={12} /> 준비 중
+        </span>
+      </div>
+    )
   }
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition ${
+        selected ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-white hover:border-slate-300'
+      }`}
+    >
+      <span
+        className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg transition ${
+          selected ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-500'
+        }`}
+      >
+        <Icon size={20} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-black text-slate-900">{label}</span>
+        {desc && <span className="block text-xs text-slate-500">{desc}</span>}
+      </span>
+      <span
+        className={`ml-auto grid h-5 w-5 shrink-0 place-items-center rounded-md border transition ${
+          selected ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-slate-300 bg-white'
+        }`}
+      >
+        {selected && <Check size={14} strokeWidth={3} />}
+      </span>
+    </button>
+  )
+}
+
+function ChoiceStep({ title, subtitle, options, isSelected, onSelect, onNext, nextDisabled }) {
   return (
     <div className="flex min-h-[80vh] flex-col">
       <div className="flex-1">
-        <h2 className="text-xl font-black text-slate-950">당신의 목표는 무엇인가요?</h2>
-        <p className="mt-1 text-sm text-slate-500">하나 이상 선택해 주세요.</p>
+        <h2 className="text-xl font-black text-slate-950">{title}</h2>
+        <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
         <div className="mt-6 grid gap-2.5">
-          {GOAL_OPTIONS.map((opt) => {
-            const active = value.includes(opt.id)
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => toggle(opt.id)}
-                className={`flex items-center gap-3 rounded-xl border p-4 text-left transition ${
-                  active ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-white hover:border-slate-300'
-                }`}
-              >
-                <span
-                  className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border transition ${
-                    active ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-slate-300 bg-white'
-                  }`}
-                >
-                  {active && <Check size={14} strokeWidth={3} />}
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-black text-slate-900">{opt.label}</span>
-                  <span className="block text-xs text-slate-500">{opt.desc}</span>
-                </span>
-              </button>
-            )
-          })}
+          {options.map((opt) => (
+            <LockableCard
+              key={opt.id}
+              icon={opt.icon}
+              label={opt.label}
+              desc={opt.desc}
+              locked={opt.locked}
+              selected={isSelected(opt.id)}
+              onClick={() => onSelect(opt.id)}
+            />
+          ))}
         </div>
       </div>
       <div className="sticky bottom-0 mt-6 bg-gradient-to-t from-[#f7f8fb] via-[#f7f8fb] to-transparent pb-2 pt-3">
-        <PrimaryButton onClick={onNext} disabled={value.length === 0}>
+        <PrimaryButton onClick={onNext} disabled={nextDisabled}>
           다음 <ArrowRight size={16} />
         </PrimaryButton>
       </div>
     </div>
+  )
+}
+
+function GoalStep({ value, onChange, onNext }) {
+  return (
+    <ChoiceStep
+      title="무엇을 시작할까요?"
+      subtitle="지금은 운동부터 열려 있어요."
+      options={GOAL_OPTIONS.filter((o) => !o.legacy)}
+      isSelected={(id) => value.includes(id)}
+      onSelect={(id) => onChange([id])} // one active category in the beta
+      onNext={onNext}
+      nextDisabled={value.length === 0}
+    />
+  )
+}
+
+function SportStep({ value, onChange, onNext }) {
+  return (
+    <ChoiceStep
+      title="어떤 운동으로 시작할까요?"
+      subtitle="런닝부터 열려 있어요."
+      options={SPORT_OPTIONS}
+      isSelected={(id) => value === id}
+      onSelect={(id) => onChange(id)}
+      onNext={onNext}
+      nextDisabled={!value}
+    />
   )
 }
 
@@ -150,7 +226,7 @@ function DreamStep({ value, onChange, onNext }) {
           value={value ?? ''}
           onChange={(e) => onChange(e.target.value.slice(0, 240))}
           rows={5}
-          placeholder="예) 매일 조금씩 성장해서 내 분야의 전문가가 되고 싶어요."
+          placeholder="예) 3개월 안에 5km를 쉬지 않고 완주하고 싶어요."
           className="w-full resize-none rounded-xl border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-500"
         />
         <span className="absolute bottom-3 right-3 text-xs text-slate-400">{(value ?? '').length}/240</span>
@@ -159,37 +235,41 @@ function DreamStep({ value, onChange, onNext }) {
   )
 }
 
-function SelectField({ label, options, value, onChange }) {
+// Dropdown replaced by tappable buttons (running-beta onboarding redesign).
+function ButtonField({ label, options, value, onChange }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-black text-slate-700">{label}</label>
-      <select
-        value={value ?? ''}
-        onChange={(e) => onChange(e.target.value)}
-        className={`h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold outline-none focus:border-indigo-500 ${
-          value ? 'text-slate-900' : 'text-slate-400'
-        }`}
-      >
-        <option value="" disabled>
-          선택해 주세요
-        </option>
-        {options.map((opt) => (
-          <option key={opt} value={opt} className="text-slate-900">
-            {opt}
-          </option>
-        ))}
-      </select>
+      <label className="mb-2 block text-sm font-black text-slate-700">{label}</label>
+      <div className="flex flex-wrap gap-2">
+        {options.map((opt) => {
+          const selected = value === opt
+          return (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => onChange(opt)}
+              className={`rounded-xl border px-4 py-2.5 text-sm font-bold transition ${
+                selected
+                  ? 'border-indigo-500 bg-indigo-50 text-indigo-600'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              {opt}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
 
-function SelectFieldsStep({ title, subtitle, fields, values, onChange, onNext, lastStep, nextLabel }) {
+function ButtonFieldsStep({ title, subtitle, fields, values, onChange, onNext, lastStep, nextLabel }) {
   const allFilled = fields.every((f) => values?.[f.id])
   return (
     <StepLayout title={title} subtitle={subtitle} onNext={onNext} nextDisabled={!allFilled} lastStep={lastStep} nextLabel={nextLabel}>
-      <div className="grid gap-4">
+      <div className="grid gap-5">
         {fields.map((f) => (
-          <SelectField
+          <ButtonField
             key={f.id}
             label={f.label}
             options={f.options}
@@ -212,15 +292,17 @@ function DurationStep({ value, onChange, onNext }) {
       lastStep
       nextLabel="플랜 만들기"
     >
-      <SelectField label="플랜 기간" options={DURATION_OPTIONS} value={value} onChange={onChange} />
+      <ButtonField label="플랜 기간" options={DURATION_OPTIONS} value={value} onChange={onChange} />
     </StepLayout>
   )
 }
 
 const GOAL_LABELS = Object.fromEntries(GOAL_OPTIONS.map((o) => [o.id, o.label]))
+const SPORT_LABELS = Object.fromEntries(SPORT_OPTIONS.map((o) => [o.id, o.label]))
 
 function SummaryPopup({ profile, onConfirm }) {
   const goals = (profile.goals ?? []).map((id) => GOAL_LABELS[id] ?? id)
+  const sport = profile.sport ? SPORT_LABELS[profile.sport] ?? profile.sport : null
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-5">
       <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
@@ -240,6 +322,7 @@ function SummaryPopup({ profile, onConfirm }) {
                 <li key={g} className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                   <Check size={15} className="shrink-0 text-indigo-500" strokeWidth={3} />
                   {g}
+                  {sport ? <span className="text-slate-400">· {sport}</span> : null}
                 </li>
               ))}
             </ul>
@@ -291,9 +374,10 @@ export default function Onboarding({ initialProfile, onProfileChange, onComplete
         )}
         {step === 0 && <Welcome onNext={next} />}
         {step === 1 && <GoalStep value={profile.goals} onChange={(goals) => patch({ goals })} onNext={next} />}
-        {step === 2 && <DreamStep value={profile.dream} onChange={(dream) => patch({ dream })} onNext={next} />}
-        {step === 3 && (
-          <SelectFieldsStep
+        {step === 2 && <SportStep value={profile.sport} onChange={(sport) => patch({ sport })} onNext={next} />}
+        {step === 3 && <DreamStep value={profile.dream} onChange={(dream) => patch({ dream })} onNext={next} />}
+        {step === 4 && (
+          <ButtonFieldsStep
             title="현재 내 상태는 어떤가요?"
             subtitle="지금의 나를 알려 주세요."
             fields={STATE_FIELDS}
@@ -302,8 +386,8 @@ export default function Onboarding({ initialProfile, onProfileChange, onComplete
             onNext={next}
           />
         )}
-        {step === 4 && (
-          <SelectFieldsStep
+        {step === 5 && (
+          <ButtonFieldsStep
             title="당신의 생활 패턴은 어떤가요?"
             subtitle="일상을 알려 주면 더 잘 맞춰 드려요."
             fields={PATTERN_FIELDS}
@@ -312,7 +396,7 @@ export default function Onboarding({ initialProfile, onProfileChange, onComplete
             onNext={next}
           />
         )}
-        {step === 5 && (
+        {step === 6 && (
           <DurationStep
             value={profile.duration}
             onChange={(duration) => patch({ duration })}

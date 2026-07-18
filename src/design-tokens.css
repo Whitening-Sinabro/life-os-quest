@@ -1,0 +1,18 @@
+@theme {
+  --color-bg:        #070b14;
+  --color-surface:   #101827;
+  --color-surface-2: #172338;
+  --color-surface-3: #22314d;
+  --color-input:     #08111f;
+  --color-border:    #243552;
+  --color-fg:        #f8fbff;
+  --color-text:      #dbeafe;
+  --color-muted:     #8ea7cb;
+  --color-faint:     #597196;
+  --color-accent:    #00d7c0;
+  --color-on-accent: #06101d;
+  --color-info:      #38bdf8;
+  --color-danger:    #ff4fb3;
+  --color-warn:      #ff8b18;
+  --color-special:   #7c5cff;
+}

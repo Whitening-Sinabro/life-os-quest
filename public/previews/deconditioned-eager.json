@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "2.0",
+  "planMeta": {
+    "goalSummary": {
+      "ko": "10년 넘게 운동 안 하다가 달리기를 시작하고 싶어요.",
+      "en": "I want to start running after not exercising for over 10 years."
+    },
+    "durationWeeks": 24,
+    "track": "v1",
+    "weeklyQuestTarget": 7,
+    "summaryLines": [
+      {
+        "ko": "주간 거리를 천천히 늘려가세요. 부상은 예방하기 위해 주 3회 달리기로 시작하세요.",
+        "en": "Gradually increase your weekly distance. Start with a running schedule of 3 times per week to prevent injuries."
+      },
+      {
+        "ko": "초보자로서 편안한 강도의 달리기를 꾸준히 유지하세요. 통증이 생기면 즉시 쉬세요.",
+        "en": "As a beginner, maintain easy running at a comfortable pace. Stop and rest if you feel pain."
+      }
+    ],
+    "source": "model"
+  },
+  "quests": [
+    {
+      "id": "run-week1-session0",
+      "category": "workout",
+      "estimatedMinutes": 25,
+      "title": "카우치 투 5K",
+      "subtitle": "NHS 9주 걷기→달리기 입문",
+      "resourceRef": "run:c25k",
+      "unitIndex": 0,
+      "unitLabel": "1주 — 5분 걷기 후 60초 달리기/90초 걷기 반복 (주 3회)",
+      "objective": {
+        "ko": "5분 빠르게 걷고 60초 달리기·90초 걷기를 반복하세요. 달리는 내내 한 문장을 여유 있게 말할 만큼 천천히 — 숨차면 더 느리게.",
+        "en": "Walk fast for 5 minutes, then run for 60 seconds and walk for 90 seconds. Run at a pace where you can speak easily but n"
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "strength-week1-session0",
+      "category": "workout",
+      "estimatedMinutes": 30,
+      "title": "러너 기본 근력·프리햅",
+      "subtitle": "종아리·후면사슬 신경근 운동",
+      "resourceRef": "strength:runner-prehab",
+      "unitIndex": 0,
+      "unitLabel": "세션 A — 종아리 레이즈 + 발목 강화",
+      "objective": {
+        "ko": "종아리 레이즈 3세트로 발목과 종아리를 단단히 하세요. 근력 운동은 달리기 부상 예방에 가장 확실한 레버예요.",
+        "en": "Do 3 sets of calf raises to strengthen your calves and ankles. Strength training is the most reliable lever for preventi"
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "run-week1-session1",
+      "category": "workout",
+      "estimatedMinutes": 25,
+      "title": "카우치 투 5K",
+      "subtitle": "NHS 9주 걷기→달리기 입문",
+      "resourceRef": "run:c25k",
+      "unitIndex": 0,
+      "unitLabel": "1주 — 5분 걷기 후 60초 달리기/90초 걷기 반복 (주 3회)",
+      "objective": {
+        "ko": "이번 주는 걷기 없이 최대 20분 이어 달려보세요. 통증이 생기면 거리를 줄이고 무리하지 마세요.",
+        "en": "This week, try running continuously for up to 20 minutes without walking. Reduce the distance if you feel pain and don't"
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "weekend-review",
+      "category": "reading",
+      "estimatedMinutes": 60,
+      "title": null,
+      "subtitle": null,
+      "resourceRef": null,
+      "unitIndex": null,
+      "unitLabel": null,
+      "objective": {
+        "ko": "이번 주 성과·막힌 점·다음 주 약속 정리",
+        "en": "Review wins, blockers, next-week commitments"
+      },
+      "meta": {
+        "xp": 50,
+        "statRewards": {
+          "leadership": 12
+        }
+      }
+    }
+  ],
+  "weekSchedule": {
+    "mon": [
+      "run-week1-session0"
+    ],
+    "tue": [],
+    "wed": [
+      "strength-week1-session0"
+    ],
+    "thu": [],
+    "fri": [
+      "run-week1-session1"
+    ],
+    "sat": [],
+    "sun": [
+      "weekend-review"
+    ]
+  }
+}

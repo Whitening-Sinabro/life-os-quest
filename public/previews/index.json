@@ -1,0 +1,22 @@
+[
+  {
+    "name": "deconditioned-eager",
+    "source": "model"
+  },
+  {
+    "name": "p5_running_5k",
+    "source": "model"
+  },
+  {
+    "name": "p6_running_weak_knee",
+    "source": "model"
+  },
+  {
+    "name": "injured-beginner",
+    "source": "model"
+  },
+  {
+    "name": "p3_vague",
+    "source": "model"
+  }
+]

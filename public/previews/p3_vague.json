@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "2.0",
+  "planMeta": {
+    "goalSummary": {
+      "ko": "더 나은 사람이 되고 싶습니다.",
+      "en": "I want to be a better person."
+    },
+    "durationWeeks": 4,
+    "track": "v1",
+    "weeklyQuestTarget": 7,
+    "summaryLines": [
+      {
+        "ko": "매일 조금씩 공부하세요. 작은 습관을 만들어보세요.",
+        "en": "Study a little every day. Try making some small habits."
+      },
+      {
+        "ko": "자신에게 도전하면서도 건강을 지키세요.",
+        "en": "Challenge yourself while also taking care of your health."
+      }
+    ],
+    "source": "model"
+  },
+  "quests": [
+    {
+      "id": "quest1",
+      "category": "reading",
+      "estimatedMinutes": 30,
+      "title": null,
+      "subtitle": null,
+      "resourceRef": null,
+      "unitIndex": null,
+      "unitLabel": null,
+      "objective": {
+        "ko": "책을 읽어보세요. 오늘은 첫 장부터 시작해 보세요.",
+        "en": "Read a book. Start with the first page today."
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "intelligence": 10
+        }
+      }
+    },
+    {
+      "id": "quest2",
+      "category": "video",
+      "estimatedMinutes": 30,
+      "title": null,
+      "subtitle": null,
+      "resourceRef": null,
+      "unitIndex": null,
+      "unitLabel": null,
+      "objective": {
+        "ko": "영상을 보세요. 오늘은 첫 영상부터 시작해 보세요.",
+        "en": "Watch a video. Start with the first one today."
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "intelligence": 10
+        }
+      }
+    },
+    {
+      "id": "quest3",
+      "category": "workout",
+      "estimatedMinutes": 20,
+      "title": null,
+      "subtitle": null,
+      "resourceRef": null,
+      "unitIndex": null,
+      "unitLabel": null,
+      "objective": {
+        "ko": "오늘은 가벼운 운동을 해보세요. 숨 쉬는 것을 느끼면서 천천히 걷거나 산책해 보세요.",
+        "en": "Do a light workout today. Walk or take a stroll slowly, feeling your breath."
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "quest4",
+      "category": "reading",
+      "estimatedMinutes": 30,
+      "title": null,
+      "subtitle": null,
+      "resourceRef": null,
+      "unitIndex": null,
+      "unitLabel": null,
+      "objective": {
+        "ko": "책을 읽어보세요. 오늘은 다음 장부터 시작해 보세요.",
+        "en": "Read a book. Start with the next page today."
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "intelligence": 10
+        }
+      }
+    },
+    {
+      "id": "quest5",
+      "category": "video",
+      "estimatedMinutes": 30,
+      "title": null,
+      "subtitle": null,
+      "resourceRef": null,
+      "unitIndex": null,
+      "unitLabel": null,
+      "objective": {
+        "ko": "영상을 보세요. 오늘은 다음 영상부터 시작해 보세요.",
+        "en": "Watch a video. Start with the next one today."
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "intelligence": 10
+        }
+      }
+    },
+    {
+      "id": "quest6",
+      "category": "workout",
+      "estimatedMinutes": 20,
+      "title": null,
+      "subtitle": null,
+      "resourceRef": null,
+      "unitIndex": null,
+      "unitLabel": null,
+      "objective": {
+        "ko": "오늘은 가벼운 운동을 해보세요. 숨 쉬는 것을 느끼면서 천천히 걷거나 산책해 보세요.",
+        "en": "Do a light workout today. Walk or take a stroll slowly, feeling your breath."
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "weekend-review",
+      "category": "reading",
+      "estimatedMinutes": 60,
+      "title": null,
+      "subtitle": null,
+      "resourceRef": null,
+      "unitIndex": null,
+      "unitLabel": null,
+      "objective": {
+        "ko": "이번 주 성과·막힌 점·다음 주 약속 정리",
+        "en": "Review wins, blockers, next-week commitments"
+      },
+      "meta": {
+        "xp": 50,
+        "statRewards": {
+          "leadership": 12
+        }
+      }
+    }
+  ],
+  "weekSchedule": {
+    "mon": [
+      "quest1"
+    ],
+    "tue": [
+      "quest2"
+    ],
+    "wed": [
+      "quest3"
+    ],
+    "thu": [
+      "quest4"
+    ],
+    "fri": [
+      "quest5"
+    ],
+    "sat": [
+      "quest6"
+    ],
+    "sun": [
+      "weekend-review"
+    ]
+  }
+}

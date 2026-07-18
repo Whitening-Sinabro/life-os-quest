@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "2.0",
+  "planMeta": {
+    "goalSummary": {
+      "ko": "3개월 안에 5km 달리기 완주하기, 지금은 거의 안 뜀.",
+      "en": "Complete a 5k run in 3 months, currently not running much."
+    },
+    "durationWeeks": 12,
+    "track": "v1",
+    "weeklyQuestTarget": 6,
+    "summaryLines": [
+      {
+        "ko": "주간 거리를 천천히 늘려가며 꾸준히 달리기. 부상 예방에 주의하고, 편안한 강도로 시작하세요.",
+        "en": "Gradually increase your weekly distance while running consistently. Pay attention to injury prevention and start at a comfortable pace."
+      },
+      {
+        "ko": "초보자로서 주 3회 달리기 계획을 세우고, 이지 페이스로 진행하세요. 부상이 생기면 즉시 쉬세요.",
+        "en": "As a beginner, plan to run three times a week and maintain an easy pace. Stop running if you experience any pain."
+      }
+    ],
+    "source": "model"
+  },
+  "quests": [
+    {
+      "id": "run-week1-session0",
+      "category": "workout",
+      "estimatedMinutes": 25,
+      "title": "카우치 투 5K",
+      "subtitle": "NHS 9주 걷기→달리기 입문",
+      "resourceRef": "run:c25k",
+      "unitIndex": 0,
+      "unitLabel": "1주 — 5분 걷기 후 60초 달리기/90초 걷기 반복 (주 3회)",
+      "objective": {
+        "ko": "주 3회 달리기 계획을 세우고, 5분 빠르게 걷고 60초 달리기·90초 걷기를 반복하세요. 달리는 내내 한 문장을 여유 있게 말할 만큼 천천히 — 숨차면 더 느리게.",
+        "en": "Plan to run three times a week and repeat the pattern of 5 minutes fast walking, 60 seconds running, and 90 seconds walk"
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "run-week1-session1",
+      "category": "workout",
+      "estimatedMinutes": 25,
+      "title": "카우치 투 5K",
+      "subtitle": "NHS 9주 걷기→달리기 입문",
+      "resourceRef": "run:c25k",
+      "unitIndex": 0,
+      "unitLabel": "1주 — 5분 걷기 후 60초 달리기/90초 걷기 반복 (주 3회)",
+      "objective": {
+        "ko": "주 3회 달리기 계획을 세우고, 5분 빠르게 걷고 60초 달리기·90초 걷기를 반복하세요. 달리는 내내 한 문장을 여유 있게 말할 만큼 천천히 — 숨차면 더 느리게.",
+        "en": "Plan to run three times a week and repeat the pattern of 5 minutes fast walking, 60 seconds running, and 90 seconds walk"
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "strength-week1-session0",
+      "category": "workout",
+      "estimatedMinutes": 30,
+      "title": "카우치 투 5K",
+      "subtitle": "NHS 9주 걷기→달리기 입문",
+      "resourceRef": "run:c25k",
+      "unitIndex": 0,
+      "unitLabel": "1주 — 5분 걷기 후 60초 달리기/90초 걷기 반복 (주 3회)",
+      "objective": {
+        "ko": "종아리 레이즈와 발목 강화 운동을 통해 종아리와 발목 근육을 단단히 하세요. 이는 달리기 부상 예방에 가장 확실한 방법입니다.",
+        "en": "Perform leg raises and ankle strengthening exercises to make your calf and ankle muscles strong. This is the most reliab"
+      },
+      "meta": {
+        "xp": 20,
+        "statRewards": {
+          "vitality": 10
+        }
+      }
+    },
+    {
+      "id": "weekend-review",
+      "category": "reading",
+      "estimatedMinutes": 60,
+      "title": null,
+      "subtitle": null,
+      "resourceRef": null,
+      "unitIndex": null,
+      "unitLabel": null,
+      "objective": {
+        "ko": "이번 주 성과·막힌 점·다음 주 약속 정리",
+        "en": "Review wins, blockers, next-week commitments"
+      },
+      "meta": {
+        "xp": 50,
+        "statRewards": {
+          "leadership": 12
+        }
+      }
+    }
+  ],
+  "weekSchedule": {
+    "mon": [
+      "run-week1-session0"
+    ],
+    "tue": [],
+    "wed": [
+      "strength-week1-session0"
+    ],
+    "thu": [],
+    "fri": [
+      "run-week1-session1"
+    ],
+    "sat": [],
+    "sun": [
+      "weekend-review"
+    ]
+  }
+}
