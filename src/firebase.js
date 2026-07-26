@@ -17,6 +17,7 @@ import {
 } from 'firebase/auth'
 import { initializeFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { isPreview, PREVIEW_SESSION, previewUserState, previewAiRow } from './previewMode.js'
+import { canPersist } from './persistGuard.js'
 
 const cfg = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -118,6 +119,19 @@ export function onAuthChange(callback) {
   return onAuthStateChanged(auth, (user) => callback(toSession(user)))
 }
 
+// --- write precondition -------------------------------------------------------------------------
+
+// Writes are refused up front when nobody is signed in, or when the signed-in user does not own
+// the target document (the account-switch case: a debounced write captured uid A while the user
+// is now signed in as B). Guarding the request means no round trip and no server verdict to
+// misinterpret — so a `permission-denied` that still arrives is a genuine signal again.
+//
+// Reads are deliberately NOT wrapped. An earlier revision caught their `permission-denied` and
+// returned null, which collapsed "read denied" into "document absent" — and the mount effect
+// treats absent as "seed this user" and writes defaults back. That turned a failed read into a
+// remote overwrite. Let read failures throw; the callers already handle them.
+const currentUid = () => auth?.currentUser?.uid ?? null
+
 // --- user_states ------------------------------------------------------------------------------
 
 // The blob is stored as a JSON STRING, not a Firestore map. Postgres jsonb accepted any shape the
@@ -138,6 +152,12 @@ export async function fetchUserState(userId) {
 export async function upsertUserState(userId, state) {
   if (isPreview()) return // preview is read-only — never persist fixture state
   if (!db) return
+  if (!canPersist(currentUid(), userId)) return // signed out, or not this user's document
+  // Full replacement, NOT { merge: true }: `state` is one opaque blob and the app is the sole
+  // author of its shape, exactly as the previous Postgres jsonb upsert behaved. Merging would
+  // strand keys the app has deliberately dropped. The clobber risk this was flagged for came
+  // from *issuing* a defaults write during sign-out; that is fixed at the source — App.jsx now
+  // cancels the debounced write, and canPersist refuses it if one still slips through.
   await setDoc(doc(db, 'user_states', userId), {
     state: JSON.stringify(state),
     updatedAt: serverTimestamp(),
@@ -149,6 +169,7 @@ export async function upsertUserState(userId, state) {
 export async function requestAiPlan(userId, request) {
   if (isPreview()) return // preview shows a fixture; never enqueue a real job
   if (!db) throw new Error('Firebase not configured')
+  if (!canPersist(currentUid(), userId)) return // same precondition as every other write
   // Full overwrite (not merge): a new request must clear any previous result, exactly like the
   // old upsert with onConflict:'user_id'. The rules only permit status='pending' from a client.
   await setDoc(doc(db, 'ai_plans', userId), {

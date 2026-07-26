@@ -1139,11 +1139,16 @@ export default function App() {
   }, [currentUserId])
 
   useEffect(() => {
-    if (isLoading || !currentUserId) return
+    // Disarm BEFORE the guard. On sign-out this effect re-runs with currentUserId null; if the
+    // clear sat below the guard it would return early and leave a previously armed timer alive,
+    // and that timer carries the wiped createDefaultState() blob. Signing back in as the same
+    // uid inside the 1s window then let it land and replace the user's whole remote document.
     clearTimeout(saveTimerRef.current)
+    if (isLoading || !currentUserId) return undefined
     saveTimerRef.current = setTimeout(() => {
       upsertUserState(currentUserId, state).catch(console.error)
     }, 1000)
+    return () => clearTimeout(saveTimerRef.current)
   }, [currentUserId, state, isLoading])
 
   useEffect(() => {
@@ -1162,8 +1167,13 @@ export default function App() {
     ).then(setAllUsersData)
   }, [currentUserId, state.schedules])
 
-  const handleSignOut = () => {
-    signOut()
+  const handleSignOut = async () => {
+    // Cancel the pending save first: wiping state while still signed in would otherwise arm a
+    // write of the default blob against the real user's document.
+    clearTimeout(saveTimerRef.current)
+    // Await the sign-out so `session` (and therefore currentUserId) is already null before the
+    // wipe re-renders — the save effect then hits its guard instead of arming a new timer.
+    await signOut()
     setState(createDefaultState())
     setAllUsersData(null)
   }
