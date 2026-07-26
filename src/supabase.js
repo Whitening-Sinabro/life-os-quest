@@ -1,106 +1,24 @@
-import { createClient } from '@supabase/supabase-js'
-import { isPreview, PREVIEW_SESSION, previewUserState, previewAiRow } from './previewMode.js'
+// Compatibility shim. The backend migrated from Supabase to Firebase (Auth + Firestore); the
+// real implementation now lives in ./firebase.js.
+//
+// This file stays because App.jsx (127 KB, and guarded by the design-contract preflight hook)
+// imports every backend function from './supabase.js'. Re-exporting under the old path keeps the
+// migration diff at zero for App.jsx and Auth.jsx. The one name that changes meaning is the raw
+// client handle: App.jsx uses it only as a truthiness guard (`if (!supabase || …)`, line 1271),
+// so `firebaseReady` — the Firestore instance, or null when unconfigured — takes that name.
+//
+// Follow-up: when App.jsx is next opened for editing, repoint its import at './firebase.js',
+// rename the guard, and delete this file.
 
-const url = import.meta.env.VITE_SUPABASE_URL
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-// Only create a client when credentials are present. Without this guard,
-// createClient throws at module load and crashes the whole app (blank page).
-export const supabase = url && anonKey ? createClient(url, anonKey) : null
-
-if (!supabase) {
-  console.warn(
-    '[supabase] VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY not set — running in local-only mode (no cloud sync).'
-  )
-}
-
-export async function signUp(email, password) {
-  if (!supabase) throw new Error('Supabase not configured')
-  const { data, error } = await supabase.auth.signUp({ email, password })
-  if (error) throw error
-  return data
-}
-
-export async function signIn(email, password) {
-  if (!supabase) throw new Error('Supabase not configured')
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) throw error
-  return data
-}
-
-export async function signOut() {
-  if (!supabase) return
-  await supabase.auth.signOut()
-}
-
-export async function getSession() {
-  if (isPreview()) return PREVIEW_SESSION
-  if (!supabase) return null
-  const { data } = await supabase.auth.getSession()
-  return data.session
-}
-
-export function onAuthChange(callback) {
-  if (isPreview()) {
-    callback(PREVIEW_SESSION)
-    return () => {}
-  }
-  if (!supabase) return () => {}
-  const { data } = supabase.auth.onAuthStateChange((_event, session) => callback(session))
-  return () => data.subscription.unsubscribe()
-}
-
-export async function fetchUserState(userId) {
-  if (isPreview()) return previewUserState()
-  if (!supabase) return null
-
-  const { data, error } = await supabase
-    .from('user_states')
-    .select('state')
-    .eq('user_id', userId)
-    .single()
-
-  if (error && error.code !== 'PGRST116') throw error
-  return data?.state ?? null
-}
-
-export async function upsertUserState(userId, state) {
-  if (isPreview()) return // preview is read-only — never persist fixture state
-  if (!supabase) return
-
-  const { error } = await supabase
-    .from('user_states')
-    .upsert({ user_id: userId, state, updated_at: new Date().toISOString() })
-
-  if (error) throw error
-}
-
-export async function requestAiPlan(userId, request) {
-  if (isPreview()) return // preview shows a fixture; never enqueue a real job
-  if (!supabase) throw new Error('Supabase not configured')
-  const { error } = await supabase.from('ai_plans').upsert(
-    {
-      user_id: userId,
-      request,
-      status: 'pending',
-      result: null,
-      error: null,
-      requested_at: new Date().toISOString(),
-      completed_at: null,
-    },
-    { onConflict: 'user_id' },
-  )
-  if (error) throw error
-}
-
-export async function fetchAiPlan(userId) {
-  if (isPreview()) return previewAiRow()
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from('ai_plans')
-    .select('status, result, error')
-    .eq('user_id', userId)
-    .single()
-  if (error && error.code !== 'PGRST116') throw error // PGRST116 = no row yet
-  return data ?? null
-}
+export {
+  firebaseReady as supabase,
+  signUp,
+  signIn,
+  signOut,
+  getSession,
+  onAuthChange,
+  fetchUserState,
+  upsertUserState,
+  requestAiPlan,
+  fetchAiPlan,
+} from './firebase.js'
